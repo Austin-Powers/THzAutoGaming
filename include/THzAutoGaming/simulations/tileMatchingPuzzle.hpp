@@ -1,0 +1,110 @@
+#ifndef THZ_AUTO_GAMING_SIMULATIONS_TILEMATCHINGPUZZLE_HPP
+#define THZ_AUTO_GAMING_SIMULATIONS_TILEMATCHINGPUZZLE_HPP
+
+#include <cstddef>
+#include <cstdint>
+#include <gsl/gsl>
+#include <random>
+#include <vector>
+
+namespace Terrahertz::Simulations {
+
+/// @brief Simulation of a tile matching puzzle.
+///
+/// @remarks This class only does simulation, the specifics of the puzzle have to be done by the user.
+class TileMatchingPuzzle
+{
+public:
+    /// @brief The value of an empty tile.
+    static constexpr std::uint8_t EmptyTile{0x00U};
+
+    /// @brief The value of an error tile.
+    static constexpr std::uint8_t ErrorTile{0xFFU};
+
+    /// @brief Structure containing basic information about a collapse of a line of tiles.
+    struct Collapse
+    {
+        /// @brief The number of the type of tile.
+        std::uint8_t type{};
+
+        /// @brief The amount of tiles that collapsed.
+        std::uint8_t amount{};
+    };
+
+    /// @brief Initializes a new simulation instance.
+    ///
+    /// @param pWidth The width of the grid.
+    /// @param pHeight The height of the grid.
+    /// @param pTypeCount The number of different tile types.
+    TileMatchingPuzzle(std::uint8_t const pWidth, std::uint8_t const pHeight, std::uint8_t const pTypeCount) noexcept;
+
+    /// @brief Returns the width of the grid.
+    ///
+    /// @return The width of the grid.
+    std::uint8_t width() const noexcept;
+
+    /// @brief Returns the height of the grid.
+    ///
+    /// @return The height of the grid.
+    std::uint8_t height() const noexcept;
+
+    /// @brief Returns the number of different tile types.
+    ///
+    /// @return The number of different tile types.
+    std::uint8_t typeCount() const noexcept;
+
+    /// @brief Provides access to the tile at the given coordinates.
+    ///
+    /// @param x The row in the grid.
+    /// @param y The column in the grid.
+    /// @return The content of the tile, 0xFF if the tile is out of range.
+    std::uint8_t operator()(std::uint8_t const x, std::uint8_t const y) const noexcept;
+
+    /// @brief Sets a new value for the tile at the given coordinates.
+    ///
+    /// @param x The row in the grid.
+    /// @param y The column in the grid.
+    /// @param newContent The new value of the tile.
+    /// @return True if the tile was set, false otherwise.
+    bool setTile(std::uint8_t const x, std::uint8_t const y, std::uint8_t const newContent) noexcept;
+
+    /// @brief Simulates the next step in the game.
+    ///
+    /// @return The collapses that happened during simulation.
+    /// @remarks Repeatedly collapses matching tiles and applies gravity until nothing is changed during collapse.
+    gsl::span<Collapse> simulate() noexcept;
+
+private:
+    /// @brief Collapses all lines of similar cells that are 3 tiles or longer.
+    ///
+    /// @return True if there are empty cells in the grid, false otherwise.
+    bool collapse() noexcept;
+
+    /// @brief Fills up empty cells by moving the content of other cells above into them.
+    void gravity() noexcept;
+
+    /// @brief Fills empty cells with random new values.
+    void fill() noexcept;
+
+    /// @brief The width of the grid.
+    std::uint8_t _width{};
+
+    /// @brief The height of the grid.
+    std::uint8_t _height{};
+
+    /// @brief The number of different tile types.
+    std::uint8_t _typeCount{};
+
+    /// @brief The grid of the puzzle.
+    std::vector<std::uint8_t> _grid{};
+
+    /// @brief The random number generator used for filling the grid.
+    std::default_random_engine _rng{};
+
+    /// @brief The distribution of the random numbers used for filling the grid.
+    std::uniform_int_distribution<std::uint16_t> _rngDist{};
+};
+
+} // namespace Terrahertz::Simulations
+
+#endif // !THZ_AUTO_GAMING_SIMULATIONS_TILEMATCHINGPUZZLE_HPP
