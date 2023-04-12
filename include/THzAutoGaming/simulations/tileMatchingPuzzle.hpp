@@ -55,36 +55,39 @@ public:
 
     /// @brief Provides access to the tile at the given coordinates.
     ///
-    /// @param x The row in the grid.
-    /// @param y The column in the grid.
+    /// @param x The row in the grid [left-right].
+    /// @param y The column in the grid [top-bottom].
     /// @return The content of the tile, 0xFF if the tile is out of range.
     std::uint8_t operator()(std::uint8_t const x, std::uint8_t const y) const noexcept;
 
     /// @brief Sets a new value for the tile at the given coordinates.
     ///
-    /// @param x The row in the grid.
-    /// @param y The column in the grid.
+    /// @param x The row in the grid [left-right].
+    /// @param y The column in the grid [top-bottom].
     /// @param newContent The new value of the tile.
     /// @return True if the tile was set, false otherwise.
     bool setTile(std::uint8_t const x, std::uint8_t const y, std::uint8_t const newContent) noexcept;
 
     /// @brief Simulates the next step in the game.
     ///
+    /// @param refill True if the grid shall be refilled after gravity has been applied.
     /// @return The collapses that happened during simulation.
     /// @remarks Repeatedly collapses matching tiles and applies gravity until nothing is changed during collapse.
-    gsl::span<Collapse> simulate() noexcept;
+    gsl::span<Collapse> simulate(bool const refill = true) noexcept;
 
 private:
     /// @brief Collapses all lines of similar cells that are 3 tiles or longer.
-    ///
-    /// @return True if there are empty cells in the grid, false otherwise.
-    bool collapse() noexcept;
+    void collapse() noexcept;
 
     /// @brief Fills up empty cells by moving the content of other cells above into them.
-    void gravity() noexcept;
+    ///
+    /// @return True if there were any changes to the grid, false otherwise.
+    bool gravity() noexcept;
 
     /// @brief Fills empty cells with random new values.
-    void fill() noexcept;
+    ///
+    /// @return True if there were any changes to the grid, false otherwise.
+    bool fill() noexcept;
 
     /// @brief The width of the grid.
     std::uint8_t _width{};

@@ -26,7 +26,7 @@ std::uint8_t TileMatchingPuzzle::operator()(std::uint8_t const x, std::uint8_t c
     {
         return ErrorTile;
     }
-    return _grid[(static_cast<size_t>(y) * _width) + x];
+    return _grid[(static_cast<size_t>(x) * _height) + y];
 }
 
 bool TileMatchingPuzzle::setTile(std::uint8_t const x, std::uint8_t const y, std::uint8_t const newContent) noexcept
@@ -39,45 +39,86 @@ bool TileMatchingPuzzle::setTile(std::uint8_t const x, std::uint8_t const y, std
     {
         return false;
     }
-    _grid[(static_cast<size_t>(y) * _width) + x] = newContent;
+    _grid[(static_cast<size_t>(x) * _height) + y] = newContent;
     return true;
 }
 
-gsl::span<TileMatchingPuzzle::Collapse> TileMatchingPuzzle::simulate() noexcept
+gsl::span<TileMatchingPuzzle::Collapse> TileMatchingPuzzle::simulate(bool const refill) noexcept
 {
-    while (collapse())
+    while (true)
     {
-        gravity();
-        fill();
+        collapse();
+        auto changes = gravity();
+        // we cannot check skipped here, because if a cell in the top row is empty
+        // gravity would return false but fill would still need to run
+        if (refill)
+        {
+            // we do not need to remember the result of gravity
+            // because if gravity changed something fill will change something as well
+            changes = fill();
+        }
+        if (!changes)
+        {
+            break;
+        }
     }
     return {};
 }
 
-bool TileMatchingPuzzle::collapse() noexcept
+void TileMatchingPuzzle::collapse() noexcept {}
+
+bool TileMatchingPuzzle::gravity() noexcept
 {
-    auto emptyTiles = false;
-    for (auto &cell : _grid)
+    auto changes = false;
+    for (auto x = 0U; x < _width; ++x)
     {
-        if (cell == EmptyTile)
+        // pointer that needs to be reached by topPtr in order to finish the column
+        auto const stopPtr = _grid.data() + (x * _height) - 1U;
+        // pointer to the bottom cell receiving content if empty
+        auto bottomPtr = stopPtr + _height;
+        // pointer to the top cell containing content to fill the bottom cell
+        auto topPtr = bottomPtr - 1U;
+
+        while (topPtr != stopPtr)
         {
-            emptyTiles = true;
-            break;
+            if ((*bottomPtr) == EmptyTile)
+            {
+                if ((*topPtr) == EmptyTile)
+                {
+                    --topPtr;
+                }
+                else
+                {
+                    // we do not need to swap as we know bottom is an empty tile
+                    (*bottomPtr) = (*topPtr);
+                    (*topPtr)    = EmptyTile;
+                    changes      = true;
+                    --bottomPtr;
+                    --topPtr;
+                }
+            }
+            else
+            {
+                --bottomPtr;
+                --topPtr;
+            }
         }
     }
-    return emptyTiles;
+    return changes;
 }
 
-void TileMatchingPuzzle::gravity() noexcept {}
-
-void TileMatchingPuzzle::fill() noexcept
+bool TileMatchingPuzzle::fill() noexcept
 {
+    auto changes = false;
     for (auto &cell : _grid)
     {
         if (cell == EmptyTile)
         {
-            cell = static_cast<std::uint8_t>(_rngDist(_rng));
+            cell    = static_cast<std::uint8_t>(_rngDist(_rng));
+            changes = true;
         }
     }
+    return changes;
 }
 
 } // namespace Terrahertz::Simulations

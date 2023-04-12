@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <gtest/gtest.h>
+#include <utility>
 
 namespace Terrahertz::UnitTests {
 
@@ -36,6 +37,15 @@ struct Simulations_TileMatchingPuzzle : public testing::Test
             {
                 ASSERT_TRUE(sut.setTile(x, y, nextCell));
                 ++nextCell;
+                if (nextCell > TypeCount)
+                {
+                    nextCell = 1U;
+                }
+            }
+            ++lineStart;
+            if (lineStart > TypeCount)
+            {
+                lineStart = 1U;
             }
         }
     }
@@ -114,6 +124,53 @@ TEST_F(Simulations_TileMatchingPuzzle, SettingValueUpdatesGrid)
     EXPECT_EQ(sut(x, y), 2U);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, GravityFillsCellsWithTheContentFromAbove) {}
+TEST_F(Simulations_TileMatchingPuzzle, GravityFillsCellsWithTheContentFromAbove)
+{
+    auto const EmptyTile = Simulations::TileMatchingPuzzle::EmptyTile;
+    fillGrid();
+
+    // one tile
+    EXPECT_TRUE(sut.setTile(0U, 0U, EmptyTile));
+
+    // horizontal line
+    EXPECT_TRUE(sut.setTile(3U, 3U, EmptyTile));
+    EXPECT_TRUE(sut.setTile(4U, 3U, EmptyTile));
+    EXPECT_TRUE(sut.setTile(5U, 3U, EmptyTile));
+    EXPECT_TRUE(sut.setTile(6U, 3U, EmptyTile));
+
+    // vertical line
+    EXPECT_TRUE(sut.setTile(5U, 4U, EmptyTile));
+    EXPECT_TRUE(sut.setTile(5U, 5U, EmptyTile));
+    EXPECT_TRUE(sut.setTile(5U, 6U, EmptyTile));
+    EXPECT_TRUE(sut.setTile(5U, 7U, EmptyTile));
+
+    replicate();
+
+    auto const result = sut.simulate(false);
+    ASSERT_TRUE(result.empty());
+
+    // simulate gravity for ourselves
+    for (auto i = 0U; i < GridHeight; ++i)
+    {
+        for (auto y = 1U; y < GridHeight; ++y)
+        {
+            for (auto x = 0U; x < GridWidth; ++x)
+            {
+                if (stateReplica[x][y] == EmptyTile)
+                {
+                    std::swap(stateReplica[x][y], stateReplica[x][y - 1]);
+                }
+            }
+        }
+    }
+
+    for (auto y = 0U; y < GridHeight; ++y)
+    {
+        for (auto x = 0U; x < GridWidth; ++x)
+        {
+            ASSERT_EQ(stateReplica[x][y], sut(x, y)) << "x: " << x << " y: " << y;
+        }
+    }
+}
 
 } // namespace Terrahertz::UnitTests
