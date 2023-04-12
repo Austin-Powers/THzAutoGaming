@@ -16,6 +16,7 @@ struct Simulations_TileMatchingPuzzle : public testing::Test
 
     std::array<std::array<std::uint8_t, GridHeight>, GridWidth> stateReplica{};
 
+    /// @brief Replicates the state of sut into the stateReplica
     void replicate() noexcept
     {
         for (auto y = 0U; y < GridHeight; ++y)
@@ -27,6 +28,26 @@ struct Simulations_TileMatchingPuzzle : public testing::Test
         }
     }
 
+    /// @brief Simulates gravity on the state replica
+    void simulateGravity()
+    {
+        auto const EmptyTile = Simulations::TileMatchingPuzzle::EmptyTile;
+        for (auto i = 0U; i < GridHeight; ++i)
+        {
+            for (auto y = 1U; y < GridHeight; ++y)
+            {
+                for (auto x = 0U; x < GridWidth; ++x)
+                {
+                    if (stateReplica[x][y] == EmptyTile)
+                    {
+                        std::swap(stateReplica[x][y], stateReplica[x][y - 1]);
+                    }
+                }
+            }
+        }
+    }
+
+    /// @brief Fills grid with a pattern to prevent randomness interfering with the tests
     void fillGrid() noexcept
     {
         auto lineStart = 1U;
@@ -149,26 +170,57 @@ TEST_F(Simulations_TileMatchingPuzzle, GravityFillsCellsWithTheContentFromAbove)
     auto const result = sut.simulate(false);
     ASSERT_TRUE(result.empty());
 
-    // simulate gravity for ourselves
-    for (auto i = 0U; i < GridHeight; ++i)
-    {
-        for (auto y = 1U; y < GridHeight; ++y)
-        {
-            for (auto x = 0U; x < GridWidth; ++x)
-            {
-                if (stateReplica[x][y] == EmptyTile)
-                {
-                    std::swap(stateReplica[x][y], stateReplica[x][y - 1]);
-                }
-            }
-        }
-    }
+    simulateGravity();
 
     for (auto y = 0U; y < GridHeight; ++y)
     {
         for (auto x = 0U; x < GridWidth; ++x)
         {
             ASSERT_EQ(stateReplica[x][y], sut(x, y)) << "x: " << x << " y: " << y;
+        }
+    }
+}
+
+TEST_F(Simulations_TileMatchingPuzzle, GridGetsRefilledAfterApplyingGravity)
+{
+    auto const EmptyTile = Simulations::TileMatchingPuzzle::EmptyTile;
+    fillGrid();
+
+    // one tile
+    EXPECT_TRUE(sut.setTile(0U, 0U, EmptyTile));
+
+    // horizontal line
+    EXPECT_TRUE(sut.setTile(3U, 3U, EmptyTile));
+    EXPECT_TRUE(sut.setTile(4U, 3U, EmptyTile));
+    EXPECT_TRUE(sut.setTile(5U, 3U, EmptyTile));
+    EXPECT_TRUE(sut.setTile(6U, 3U, EmptyTile));
+
+    // vertical line
+    EXPECT_TRUE(sut.setTile(5U, 4U, EmptyTile));
+    EXPECT_TRUE(sut.setTile(5U, 5U, EmptyTile));
+    EXPECT_TRUE(sut.setTile(5U, 6U, EmptyTile));
+    EXPECT_TRUE(sut.setTile(5U, 7U, EmptyTile));
+
+    replicate();
+
+    auto const result = sut.simulate();
+    ASSERT_TRUE(result.empty());
+
+    simulateGravity();
+
+    for (auto y = 0U; y < GridHeight; ++y)
+    {
+        for (auto x = 0U; x < GridWidth; ++x)
+        {
+            if (stateReplica[x][y] == EmptyTile)
+            {
+                ASSERT_NE(sut(x, y), EmptyTile) << "x: " << x << " y: " << y;
+                ASSERT_NE(sut(x, y), Simulations::TileMatchingPuzzle::ErrorTile) << "x: " << x << " y: " << y;
+            }
+            else
+            {
+                ASSERT_EQ(sut(x, y), stateReplica[x][y]) << "x: " << x << " y: " << y;
+            }
         }
     }
 }
