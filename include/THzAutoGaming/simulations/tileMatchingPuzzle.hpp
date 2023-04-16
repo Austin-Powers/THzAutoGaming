@@ -28,7 +28,10 @@ public:
         std::uint8_t type{};
 
         /// @brief The amount of tiles that collapsed.
-        std::uint8_t amount{};
+        std::uint16_t amount{};
+
+        /// @brief The wave of the simulation in which the collapse took place.
+        std::uint16_t wave{};
     };
 
     /// @brief Initializes a new simulation instance.
@@ -76,8 +79,23 @@ public:
     gsl::span<Collapse> simulate(bool const refill = true) noexcept;
 
 private:
+    /// @brief Structure containing all information about a tile.
+    struct Tile
+    {
+        /// @brief The type of the tile.
+        std::uint8_t type{};
+
+        /// @brief The id of horizontal group the tile belongs to.
+        std::uint16_t horizontalGroupId{};
+
+        /// @brief The id of verical group the tile belongs to.
+        std::uint16_t verticalGroupId{};
+    };
+
     /// @brief Collapses all lines of similar cells that are 3 tiles or longer.
-    void collapse() noexcept;
+    ///
+    /// @param wave The current wave of the simulation.
+    void collapse(std::uint16_t const wave) noexcept;
 
     /// @brief Fills up empty cells by moving the content of other cells above into them.
     ///
@@ -99,7 +117,13 @@ private:
     std::uint8_t _typeCount{};
 
     /// @brief The grid of the puzzle.
-    std::vector<std::uint8_t> _grid{};
+    std::vector<Tile> _grid{};
+
+    /// @brief Vector mapping group Ids to _collapses indeces.
+    std::vector<std::uint16_t> _groups{};
+
+    /// @brief Vector of all the collapses happening during the current simulation step.
+    std::vector<Collapse> _collapses{};
 
     /// @brief The random number generator used for filling the grid.
     std::default_random_engine _rng{};
