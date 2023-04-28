@@ -48,6 +48,7 @@ endif()
 add_library(${PROJECT_NAME} STATIC
 	src/simulations/tileMatchingPuzzle.cpp
 
+	include/THzAutoGaming/optimisation/evolution/algorithm.hpp
 	include/THzAutoGaming/simulations/tileMatchingPuzzle.hpp
 )
 
