@@ -1,11 +1,11 @@
 #ifndef THZ_AUTO_GAMING_OPTIMISATION_EVOLUTION_ALGORITHM_HPP
 #define THZ_AUTO_GAMING_OPTIMISATION_EVOLUTION_ALGORITHM_HPP
 
+#include <cmath>
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
-#include <limits>
 #include <type_traits>
 #include <vector>
 
@@ -108,20 +108,16 @@ public:
     bool setParameters(Parameters const &newParameters) noexcept
     {
         auto const wrong = [](double const toCheck) noexcept -> bool {
-            if (toCheck == std::numeric_limits<double>::infinity())
+            if (toCheck == 0.0)
+            {
+                // 0.0 is allowed by this but not normal
+                return false;
+            }
+            if (!std::isnormal(toCheck))
             {
                 return true;
             }
-            if (toCheck < 0.0)
-            {
-                return true;
-            }
-            if (toCheck != toCheck)
-            {
-                // this check for NaN
-                return true;
-            }
-            return false;
+            return toCheck < 0.0;
         };
         if ((newParameters.population == 0U) || (newParameters.survivors == 0U))
         {
