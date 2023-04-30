@@ -109,8 +109,12 @@ TEST_F(Optimisation_Evolution_Algorithm, SettingIllegalParametersReturnsFalseAnd
     checkSet(parameters);
     parameters.population = 500U;
 
-    // survivors more than population
+    // survivors greater than population
     parameters.survivors = 1000U;
+    checkSet(parameters);
+
+    // survivors equal population
+    parameters.survivors = 500U;
     checkSet(parameters);
 
     // survivors zero
@@ -158,7 +162,14 @@ TEST_F(Optimisation_Evolution_Algorithm, SettingIllegalParametersReturnsFalseAnd
 TEST_F(Optimisation_Evolution_Algorithm, SettingCorrectParametersUpdatesValues)
 {
     Parameters parameters{};
+    parameters.population += 1U;
+    parameters.survivors += 1U;
+    parameters.reproductionPortion += 0.1;
+    parameters.mutationPortion += 0.1;
+    parameters.reinitPortion += 0.1;
+    parameters.ratioDynamics += 0.01;
     EXPECT_TRUE(sut.setParameters(parameters));
+    checkParameters(parameters, sut.parameters());
 }
 
 } // namespace Terrahertz::UnitTests

@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
+#include <limits>
 #include <type_traits>
 #include <vector>
 
@@ -104,13 +105,46 @@ public:
     /// @brief Sets the parameters of the algorithm.
     ///
     /// @param parameters The new parameters for the algorithms to use.
-    bool setParameters(Parameters const &newParameters) noexcept { return false; }
+    bool setParameters(Parameters const &newParameters) noexcept
+    {
+        auto const wrong = [](double const toCheck) noexcept -> bool {
+            if (toCheck == std::numeric_limits<double>::infinity())
+            {
+                return true;
+            }
+            if (toCheck < 0.0)
+            {
+                return true;
+            }
+            if (toCheck != toCheck)
+            {
+                // this check for NaN
+                return true;
+            }
+            return false;
+        };
+        if ((newParameters.population == 0U) || (newParameters.survivors == 0U))
+        {
+            return false;
+        }
+        if (newParameters.population <= newParameters.survivors)
+        {
+            return false;
+        }
+        if (wrong(newParameters.reproductionPortion) || wrong(newParameters.mutationPortion) ||
+            wrong(newParameters.reinitPortion) || wrong(newParameters.ratioDynamics))
+        {
+            return false;
+        }
+        _parameters = newParameters;
+        return true;
+    }
 
     bool load(std::ifstream &file) noexcept { return false; }
 
     bool save(std::ofstream &file) noexcept { return false; }
 
-    bool run() noexcept { return false; }
+    bool runOnce() noexcept { return false; }
 
     size_t runFor(size_t overallGenerations) noexcept { return 0U; }
 
