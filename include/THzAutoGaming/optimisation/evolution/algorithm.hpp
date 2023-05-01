@@ -175,8 +175,8 @@ private:
             Mutation
         };
 
-        /// @brief The origin of the individual.
-        Origin origin{};
+        /// @brief The state of the individual.
+        State state{};
 
         /// @brief The fitness of the individual.
         double fitness{};
