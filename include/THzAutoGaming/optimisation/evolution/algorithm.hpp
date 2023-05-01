@@ -1,6 +1,7 @@
 #ifndef THZ_AUTO_GAMING_OPTIMISATION_EVOLUTION_ALGORITHM_HPP
 #define THZ_AUTO_GAMING_OPTIMISATION_EVOLUTION_ALGORITHM_HPP
 
+#include <cmath>
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
@@ -104,13 +105,42 @@ public:
     /// @brief Sets the parameters of the algorithm.
     ///
     /// @param parameters The new parameters for the algorithms to use.
-    bool setParameters(Parameters const &newParameters) noexcept { return false; }
+    bool setParameters(Parameters const &newParameters) noexcept
+    {
+        auto const wrong = [](double const toCheck) noexcept -> bool {
+            if (toCheck == 0.0)
+            {
+                // 0.0 is allowed by this but not normal
+                return false;
+            }
+            if (!std::isnormal(toCheck))
+            {
+                return true;
+            }
+            return toCheck < 0.0;
+        };
+        if ((newParameters.population == 0U) || (newParameters.survivors == 0U))
+        {
+            return false;
+        }
+        if (newParameters.population <= newParameters.survivors)
+        {
+            return false;
+        }
+        if (wrong(newParameters.reproductionPortion) || wrong(newParameters.mutationPortion) ||
+            wrong(newParameters.reinitPortion) || wrong(newParameters.ratioDynamics))
+        {
+            return false;
+        }
+        _parameters = newParameters;
+        return true;
+    }
 
     bool load(std::ifstream &file) noexcept { return false; }
 
     bool save(std::ofstream &file) noexcept { return false; }
 
-    bool run() noexcept { return false; }
+    bool runOnce() noexcept { return false; }
 
     size_t runFor(size_t overallGenerations) noexcept { return 0U; }
 
@@ -123,6 +153,38 @@ public:
     TIndividualType const &bestIndividual() const noexcept {}
 
 private:
+    /// @brief Structure to augment the TIndividualType with additional data.
+    struct Individual
+    {
+        /// @brief Enumeration of the state of an individual.
+        enum class State
+        {
+            // Individual was created but not initialized
+            Created,
+
+            // Individual is empty
+            Empty,
+
+            // Individual was created by calling init
+            Init,
+
+            // Individual was created by calling reproduce
+            Reproduction,
+
+            // Individual was created by calling mutate
+            Mutation
+        };
+
+        /// @brief The origin of the individual.
+        Origin origin{};
+
+        /// @brief The fitness of the individual.
+        double fitness{};
+
+        /// @brief The individual to augment.
+        TIndividualType individual{};
+    };
+
     /// @brief The parameters of the algorithm run.
     Parameters _parameters{};
 
@@ -133,7 +195,7 @@ private:
     TEvaluatorType _evaluator;
 
     /// @brief The population to evolve.
-    std::vector<TIndividualType> _population{};
+    std::vector<Individual> _population{};
 };
 
 } // namespace Terrahertz::Optimisation::Evolution
