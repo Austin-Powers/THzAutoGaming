@@ -153,6 +153,38 @@ public:
     TIndividualType const &bestIndividual() const noexcept {}
 
 private:
+    /// @brief Structure to augment the TIndividualType with additional data.
+    struct Individual
+    {
+        /// @brief Enumeration of the state of an individual.
+        enum class State
+        {
+            // Individual was created but not initialized
+            Created,
+
+            // Individual is empty
+            Empty,
+
+            // Individual was created by calling init
+            Init,
+
+            // Individual was created by calling reproduce
+            Reproduction,
+
+            // Individual was created by calling mutate
+            Mutation
+        };
+
+        /// @brief The origin of the individual.
+        Origin origin{};
+
+        /// @brief The fitness of the individual.
+        double fitness{};
+
+        /// @brief The individual to augment.
+        TIndividualType individual{};
+    };
+
     /// @brief The parameters of the algorithm run.
     Parameters _parameters{};
 
@@ -163,7 +195,7 @@ private:
     TEvaluatorType _evaluator;
 
     /// @brief The population to evolve.
-    std::vector<TIndividualType> _population{};
+    std::vector<Individual> _population{};
 };
 
 } // namespace Terrahertz::Optimisation::Evolution
