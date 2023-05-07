@@ -1,6 +1,7 @@
 #ifndef THZ_AUTO_GAMING_OPTIMISATION_EVOLUTION_ALGORITHM_HPP
 #define THZ_AUTO_GAMING_OPTIMISATION_EVOLUTION_ALGORITHM_HPP
 
+#include <algorithm>
 #include <cmath>
 #include <concepts>
 #include <cstddef>
@@ -95,7 +96,9 @@ public:
     /// @param evaluator The evaluator instance used by the algorithm.
     Algorithm(TIndividualType rootIndividual = {}, TEvaluatorType evaluator = {}) noexcept
         : _rootIndividual{rootIndividual}, _evaluator{evaluator}
-    {}
+    {
+        resizePopulation();
+    }
 
     /// @brief Returns the parameters of the algorithm.
     ///
@@ -133,6 +136,7 @@ public:
             return false;
         }
         _parameters = newParameters;
+        resizePopulation();
         return true;
     }
 
@@ -183,7 +187,34 @@ private:
 
         /// @brief The individual to augment.
         TIndividualType individual{};
+
+        /// @brief Initializes a new Individual using the given root.
+        ///
+        /// @param root The root individual to copy from.
+        Individual(TIndividualType const &root) noexcept : individual{root} {}
     };
+
+    /// @brief Resizes the population, keeping all current individual in case it is shrinking.
+    void resizePopulation() noexcept
+    {
+        if (_population.size() < _parameters.population)
+        {
+            _population.reserve(_parameters.population);
+        }
+
+        while (_population.size() < _parameters.population)
+        {
+            _population.emplace_back(_rootIndividual);
+        }
+
+        if (_population.size() > _parameters.population)
+        {
+            _population.erase(
+                std::remove_if(_population.begin(), _population.end(), [](Individual const &i) noexcept -> bool {
+                    return i.state == Individual::State::Empty;
+                }));
+        }
+    }
 
     /// @brief The parameters of the algorithm run.
     Parameters _parameters{};

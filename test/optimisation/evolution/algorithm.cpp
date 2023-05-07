@@ -27,6 +27,7 @@ struct TestIndiviual
         {
             ++(*_counter);
         }
+        return *this;
     }
 
     void init() noexcept {}
@@ -92,7 +93,7 @@ TEST_F(Optimisation_Evolution_Algorithm, ConstructionCorrect)
     checkParameters(defaultParams, sut.parameters());
 
     // check if individual was only copied into the
-    EXPECT_LE(individualCount, 2U);
+    EXPECT_LE(individualCount, 102U);
 }
 
 TEST_F(Optimisation_Evolution_Algorithm, SettingIllegalParametersReturnsFalseAndChangesNothing)
@@ -170,6 +171,15 @@ TEST_F(Optimisation_Evolution_Algorithm, SettingCorrectParametersUpdatesValues)
     parameters.ratioDynamics += 0.01;
     EXPECT_TRUE(sut.setParameters(parameters));
     checkParameters(parameters, sut.parameters());
+}
+
+TEST_F(Optimisation_Evolution_Algorithm, IncreasingPopulationCopiesRootIndividual)
+{
+    auto const initialCount = individualCount;
+    Parameters parameters{};
+    parameters.population += 20;
+    EXPECT_TRUE(sut.setParameters(parameters));
+    EXPECT_GT(individualCount, initialCount);
 }
 
 } // namespace Terrahertz::UnitTests
