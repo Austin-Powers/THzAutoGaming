@@ -10,27 +10,31 @@ struct TestIndiviual
 {
     TestIndiviual() noexcept = default;
 
-    TestIndiviual(size_t &counter) noexcept : _counter{&counter} {}
+    TestIndiviual(size_t &copyCounter, size_t &initCounter) noexcept
+        : _copyCounter{&copyCounter}, _initCounter{&initCounter}
+    {}
 
-    TestIndiviual(TestIndiviual const &other) noexcept : _counter{other._counter}
+    TestIndiviual(TestIndiviual const &other) noexcept
+        : _copyCounter{other._copyCounter}, _initCounter{other._initCounter}
     {
-        if (_counter != nullptr)
+        if (_copyCounter != nullptr)
         {
-            ++(*_counter);
+            ++(*_copyCounter);
         }
     }
 
     TestIndiviual &operator=(TestIndiviual const &other) noexcept
     {
-        _counter = other._counter;
-        if (_counter != nullptr)
+        _copyCounter = other._copyCounter;
+        _initCounter = other._initCounter;
+        if (_copyCounter != nullptr)
         {
-            ++(*_counter);
+            ++(*_copyCounter);
         }
         return *this;
     }
 
-    void init() noexcept {}
+    void init() noexcept { ++(*_initCounter); }
 
     void reproduce(TestIndiviual const &parentA, TestIndiviual const &parentB) noexcept {}
 
@@ -40,23 +44,47 @@ struct TestIndiviual
 
     bool load(std::ifstream &file) noexcept { return false; }
 
-    size_t *_counter{};
+    size_t *_copyCounter{};
+
+    size_t *_initCounter{};
 };
 
 struct TestEvaluator
 {
-    double evaluate(TestIndiviual const &individual) noexcept { return 0.0; }
+    TestEvaluator() noexcept = default;
+
+    TestEvaluator(size_t &evalCounter) noexcept : _evalCounter{&evalCounter} {}
+
+    TestEvaluator(TestEvaluator const &other) noexcept : _evalCounter{other._evalCounter} {}
+
+    TestEvaluator &operator=(TestEvaluator const &other) noexcept
+    {
+        _evalCounter = other._evalCounter;
+        return *this;
+    }
+
+    double operator()(TestIndiviual const &individual) noexcept
+    {
+        ++(*_evalCounter);
+        return 0.0;
+    }
+
+    size_t *_evalCounter{};
 };
 
 struct Optimisation_Evolution_Algorithm : public testing::Test
 {
     using Parameters = Optimisation::Evolution::Parameters;
 
-    size_t individualCount{};
+    size_t copyCount{};
 
-    TestIndiviual rootIndividual{individualCount};
+    size_t initCount{};
 
-    TestEvaluator evaluator{};
+    size_t evalCount{};
+
+    TestIndiviual rootIndividual{copyCount, initCount};
+
+    TestEvaluator evaluator{evalCount};
 
     Optimisation::Evolution::Algorithm<TestIndiviual, TestEvaluator> sut{rootIndividual, evaluator};
 
@@ -91,9 +119,11 @@ TEST_F(Optimisation_Evolution_Algorithm, ConstructionCorrect)
 {
     Parameters const defaultParams{};
     checkParameters(defaultParams, sut.parameters());
+    EXPECT_EQ(sut.generation(), 0U);
 
-    // check if individual was only copied into the
-    EXPECT_LE(individualCount, 102U);
+    EXPECT_LE(copyCount, 102U);
+    EXPECT_EQ(initCount, 0U);
+    EXPECT_EQ(evalCount, 0U);
 }
 
 TEST_F(Optimisation_Evolution_Algorithm, SettingIllegalParametersReturnsFalseAndChangesNothing)
@@ -118,8 +148,8 @@ TEST_F(Optimisation_Evolution_Algorithm, SettingIllegalParametersReturnsFalseAnd
     parameters.survivors = 500U;
     checkSet(parameters);
 
-    // survivors zero
-    parameters.survivors = 0U;
+    // survivors less than two
+    parameters.survivors = 1U;
     checkSet(parameters);
     parameters.survivors = 200U;
 
@@ -175,11 +205,19 @@ TEST_F(Optimisation_Evolution_Algorithm, SettingCorrectParametersUpdatesValues)
 
 TEST_F(Optimisation_Evolution_Algorithm, IncreasingPopulationCopiesRootIndividual)
 {
-    auto const initialCount = individualCount;
+    auto const initialCount = copyCount;
     Parameters parameters{};
     parameters.population += 20;
     EXPECT_TRUE(sut.setParameters(parameters));
-    EXPECT_GT(individualCount, initialCount);
+    EXPECT_GT(copyCount, initialCount);
+}
+
+TEST_F(Optimisation_Evolution_Algorithm, FirstRunOnlyCallsInitAndEvaluatorForEveryIndividual)
+{
+    sut.runOnce();
+    EXPECT_EQ(sut.generation(), 1U);
+    EXPECT_EQ(initCount, sut.parameters().population);
+    EXPECT_EQ(evalCount, sut.parameters().population);
 }
 
 } // namespace Terrahertz::UnitTests

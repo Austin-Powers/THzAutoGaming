@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
+#include <random>
 #include <type_traits>
 #include <vector>
 
@@ -24,20 +25,20 @@ concept Individual = requires(TIndividualType individual, TIndividualType const 
     // copy assignable
     individual = cIndividual;
 
-	// method for initializing the individual with new values from scrath
-	{individual.init()};
+    // method for initializing the individual with new values from scrath
+    {individual.init()};
 
-	// method for initializing the individual with values from combining two existing individuals
-	{individual.reproduce(cIndividual, cIndividual)};
-	
-	// method for initializing the individual with slightly altered values from one existing individual
-	{individual.mutate(cIndividual)};
+    // method for initializing the individual with values from combining two existing individuals
+    {individual.reproduce(cIndividual, cIndividual)};
+    
+    // method for initializing the individual with slightly altered values from one existing individual
+    {individual.mutate(cIndividual)};
 
-	// method for saving the state of the individual to a std::ofstream
-	{cIndividual.save(oFile)} -> std::same_as<bool>;
+    // method for saving the state of the individual to a std::ofstream
+    {cIndividual.save(oFile)} -> std::same_as<bool>;
 
-	// method for loading the state of the individual to a std::ifstream
-	{individual.load(iFile)} -> std::same_as<bool>;
+    // method for loading the state of the individual to a std::ifstream
+    {individual.load(iFile)} -> std::same_as<bool>;
 };
 
 /// @brief Concept for a evaluator for individuals.
@@ -50,7 +51,7 @@ concept Evaluator = requires(TEvaluatorType evaluator, TEvaluatorType const cEva
     // copy assignable
     evaluator = cEvaluator;
 
-    {evaluator.evaluate(individual)} -> std::same_as<double>;
+    {evaluator(individual)} -> std::same_as<double>;
 };
 
 // clang-format on
@@ -122,7 +123,7 @@ public:
             }
             return toCheck < 0.0;
         };
-        if ((newParameters.population == 0U) || (newParameters.survivors == 0U))
+        if ((newParameters.population == 0U) || (newParameters.survivors < 2U))
         {
             return false;
         }
@@ -144,15 +145,61 @@ public:
 
     bool save(std::ofstream &file) noexcept { return false; }
 
-    bool runOnce() noexcept { return false; }
+    /// @brief Runs the evolution for one generation.
+    void runOnce() noexcept
+    {
+        for (auto &i : _population)
+        {
+            if (i.state == Individual::State::Empty)
+            {
+                fillIndividual(i);
+            }
+            i.fitness = _evaluator(i.individual);
+        }
 
-    size_t runFor(size_t overallGenerations) noexcept { return 0U; }
+        std::uniform_int_distribution<size_t> dist{0U, _population.size() - 1U};
+        for (auto i = _parameters.population - _parameters.survivors; i > 0; --i)
+        {
+            auto idxA = dist(_rng);
+            while (_population[idxA].state == Individual::State::Empty)
+            {
+                ++idxA;
+                if (idxA == _population.size())
+                {
+                    idxA = 0U;
+                }
+            }
+            auto idxB = dist(_rng);
+            while ((_population[idxB].state == Individual::State::Empty) || (idxA == idxB))
+            {
+                ++idxB;
+                if (idxB == _population.size())
+                {
+                    idxB = 0U;
+                }
+            }
+            if (_population[idxA].fitness > _population[idxB].fitness)
+            {
+                _population[idxB].state = Individual::State::Empty;
+            }
+            else
+            {
+                _population[idxA].state = Individual::State::Empty;
+            }
+        }
+        ++_generation;
+    }
 
     template <typename TFunctor>
     size_t runUntil(TFunctor const &predicate) noexcept
     {
         return 0U;
     }
+
+    /// @brief Returns the current generation of the evolution.
+    ///
+    /// @return The current generation of the evolution.
+    size_t generation() const noexcept { return _generation; }
 
     TIndividualType const &bestIndividual() const noexcept {}
 
@@ -163,9 +210,6 @@ private:
         /// @brief Enumeration of the state of an individual.
         enum class State
         {
-            // Individual was created but not initialized
-            Created,
-
             // Individual is empty
             Empty,
 
@@ -216,6 +260,15 @@ private:
         }
     }
 
+    void fillIndividual(Individual &indivual) noexcept
+    {
+        if (_generation == 0U)
+        {
+            indivual.state = Individual::State::Init;
+            indivual.individual.init();
+        }
+    };
+
     /// @brief The parameters of the algorithm run.
     Parameters _parameters{};
 
@@ -227,6 +280,12 @@ private:
 
     /// @brief The population to evolve.
     std::vector<Individual> _population{};
+
+    /// @brief The random number generator used for filling the grid.
+    std::default_random_engine _rng{};
+
+    /// @brief The current generation.
+    size_t _generation{};
 };
 
 } // namespace Terrahertz::Optimisation::Evolution
