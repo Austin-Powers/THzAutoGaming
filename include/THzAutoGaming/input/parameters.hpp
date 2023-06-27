@@ -1,3 +1,6 @@
+#ifndef THZ_AUTO_GAMING_INPUT_PARAMETERES_HPP
+#define THZ_AUTO_GAMING_INPUT_PARAMETERES_HPP
+
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
@@ -51,3 +54,5 @@ constexpr Parameters Human{55, 24, 108, 130, 77, 14, 76, 21, 0.2821, 492.65, 335
 constexpr Parameters Fast{50, 0, 50, 0, 50, 0, 50, 0, 0.0, 3840.0, 0.0, 2160.0, 0.0};
 
 } // namespace Terrahertz::Input
+
+#endif // !THZ_AUTO_GAMING_INPUT_PARAMETERES_HPP
