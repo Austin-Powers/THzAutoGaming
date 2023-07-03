@@ -1,6 +1,7 @@
 #ifndef THZ_AUTO_GAMING_INPUT_COMMON_HPP
 #define THZ_AUTO_GAMING_INPUT_COMMON_HPP
 
+#include <concepts>
 #include <cstdint>
 
 namespace Terrahertz::Input {
@@ -22,6 +23,17 @@ enum class KeyboardLock : std::int32_t
     Num    = 0x90,
     Caps   = 0x14
 };
+
+// clang-format off
+
+/// @brief Concept for the system interface used to 
+template <typename TInterfaceType>
+concept SystemInterface = requires(TInterfaceType systemInterface) {
+    // copy constructible
+    TInterfaceType(systemInterface);
+};
+
+// clang-format on
 
 } // namespace Terrahertz::Input
 
