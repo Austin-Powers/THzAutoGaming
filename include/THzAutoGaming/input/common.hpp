@@ -28,9 +28,14 @@ enum class KeyboardLock : std::int32_t
 
 /// @brief Concept for the system interface used to 
 template <typename TInterfaceType>
-concept SystemInterface = requires(TInterfaceType systemInterface) {
+concept SystemInterface = requires(TInterfaceType systemInterface, TInterfaceType const cSystemInterface, std::uint32_t &coordinate) {
     // copy constructible
-    TInterfaceType(systemInterface);
+    TInterfaceType(cSystemInterface);
+
+    // copy assignable
+    systemInterface = cSystemInterface;
+
+    {systemInterface.getCursorPosition(coordinate, coordinate)} noexcept -> std::same_as<bool>;
 };
 
 // clang-format on

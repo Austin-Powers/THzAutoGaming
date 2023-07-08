@@ -22,9 +22,17 @@ public:
     /// @brief Returns the parameters used by the emulator.
     ///
     /// @return The parameters used by the emulator.
-    Parameters const &parametes() const noexcept { return _parameters; }
+    inline Parameters const &parametes() const noexcept { return _parameters; }
 
     // mouse getter
+
+    /// @brief Returns the current position of the cursor on the screen.
+    ///
+    /// @param x The x coordinate of the cursor.
+    /// @param y The y coordinate of the cursor.
+    /// @return True if the operation was successfull, false otherwise.
+    bool getCursorPosition(std::uint32_t &x, std::uint32_t &y) noexcept { return _interface.getCursorPosition(x, y); }
+
     // mouse setter
     // keyboard getter
     // keyboard setter

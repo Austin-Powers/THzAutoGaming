@@ -8,9 +8,43 @@ namespace Terrahertz::UnitTests {
 struct Input_Emulator : public testing::Test
 {
     struct MockSystemInterface
-    {};
+    {
+        struct Data
+        {
+            bool returnValue{};
+
+            std::uint32_t x{};
+
+            std::uint32_t y{};
+        };
+
+        MockSystemInterface(Data &rData) noexcept : data{&rData} {}
+
+        MockSystemInterface(MockSystemInterface const &other) noexcept : data{other.data} {}
+
+        MockSystemInterface &operator=(MockSystemInterface const &other) noexcept
+        {
+            data = other.data;
+            return *this;
+        }
+
+        bool getCursorPosition(std::uint32_t &x, std::uint32_t &y) noexcept
+        {
+            x = data->x;
+            y = data->y;
+            return data->returnValue;
+        }
+
+        Data *data;
+    };
 
     using TestEmulator = Input::Emulator<MockSystemInterface>;
+
+    MockSystemInterface::Data systemInterfaceData{};
+
+    MockSystemInterface systemInterface{systemInterfaceData};
+
+    TestEmulator sut{Input::Parameters::Human(), systemInterface};
 
     void checkParameters(Input::Parameters const &expected, Input::Parameters const &actual) noexcept
     {
@@ -32,9 +66,20 @@ struct Input_Emulator : public testing::Test
 
 TEST_F(Input_Emulator, ParametersCorrectAfterConstruction)
 {
-    auto const         params = Input::Parameters::Human();
-    TestEmulator const sut{params};
-    checkParameters(params, sut.parametes());
+    checkParameters(Input::Parameters::Human(), sut.parametes());
+}
+
+TEST_F(Input_Emulator, getCursorPositionRelaisInformationCorrectly)
+{
+    std::uint32_t x{};
+    std::uint32_t y{};
+    EXPECT_FALSE(sut.getCursorPosition(x, y));
+    systemInterfaceData.returnValue = true;
+    systemInterfaceData.x           = 22U;
+    systemInterfaceData.y           = 40U;
+    EXPECT_TRUE(sut.getCursorPosition(x, y));
+    EXPECT_EQ(x, systemInterfaceData.x);
+    EXPECT_EQ(y, systemInterfaceData.y);
 }
 
 } // namespace Terrahertz::UnitTests
