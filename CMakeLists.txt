@@ -46,6 +46,7 @@ if(NOT DEFINED THzImage)
 endif()
 
 add_library(${PROJECT_NAME} STATIC
+	src/input/parameters.cpp
 	src/simulations/tileMatchingPuzzle.cpp
 
 	include/THzAutoGaming/input/common.hpp
