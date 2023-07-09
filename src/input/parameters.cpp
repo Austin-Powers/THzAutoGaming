@@ -1,5 +1,7 @@
 #include "THzAutoGaming/input/parameters.hpp"
 
+#include <cmath>
+
 namespace Terrahertz::Input {
 
 using ms = std::chrono::milliseconds;
