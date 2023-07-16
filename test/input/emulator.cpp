@@ -13,6 +13,8 @@ struct Input_Emulator : public testing::Test
         {
             bool returnValue{};
 
+            Input::MouseButton mb{};
+
             std::uint32_t x{};
 
             std::uint32_t y{};
@@ -32,6 +34,19 @@ struct Input_Emulator : public testing::Test
         {
             x = data->x;
             y = data->y;
+            return data->returnValue;
+        }
+
+        bool setCursorPosition(std::uint32_t const x, std::uint32_t const y) noexcept
+        {
+            data->x = x;
+            data->y = y;
+            return data->returnValue;
+        }
+
+        bool isDown(Input::MouseButton const mb) noexcept
+        {
+            data->mb = mb;
             return data->returnValue;
         }
 
@@ -80,6 +95,15 @@ TEST_F(Input_Emulator, getCursorPositionRelaisInformationCorrectly)
     EXPECT_TRUE(sut.getCursorPosition(x, y));
     EXPECT_EQ(x, systemInterfaceData.x);
     EXPECT_EQ(y, systemInterfaceData.y);
+}
+
+TEST_F(Input_Emulator, IsMouseButtonDown)
+{
+    EXPECT_FALSE(sut.isDown(Input::MouseButton::Middle));
+    EXPECT_EQ(systemInterfaceData.mb, Input::MouseButton::Middle);
+    systemInterfaceData.returnValue = true;
+    EXPECT_TRUE(sut.isDown(Input::MouseButton::Left));
+    EXPECT_EQ(systemInterfaceData.mb, Input::MouseButton::Left);
 }
 
 } // namespace Terrahertz::UnitTests
