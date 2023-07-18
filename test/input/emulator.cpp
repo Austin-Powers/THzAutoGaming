@@ -17,6 +17,8 @@ struct Input_Emulator : public testing::Test
 
             Input::Key k{};
 
+            Input::KeyboardLock l{};
+
             std::uint32_t x{};
 
             std::uint32_t y{};
@@ -55,6 +57,12 @@ struct Input_Emulator : public testing::Test
         bool isDown(Input::Key const k) noexcept
         {
             data->k = k;
+            return data->returnValue;
+        }
+
+        bool isActive(Input::KeyboardLock const l) noexcept
+        {
+            data->l = l;
             return data->returnValue;
         }
 
@@ -121,6 +129,15 @@ TEST_F(Input_Emulator, IsKeyDown)
     systemInterfaceData.returnValue = true;
     EXPECT_TRUE(sut.isDown(Input::Key::ControlKey));
     EXPECT_EQ(systemInterfaceData.k, Input::Key::ControlKey);
+}
+
+TEST_F(Input_Emulator, IsKeyboardLockActive)
+{
+    EXPECT_FALSE(sut.isActive(Input::KeyboardLock::Caps));
+    EXPECT_EQ(systemInterfaceData.l, Input::KeyboardLock::Caps);
+    systemInterfaceData.returnValue = true;
+    EXPECT_TRUE(sut.isActive(Input::KeyboardLock::Num));
+    EXPECT_EQ(systemInterfaceData.l, Input::KeyboardLock::Num);
 }
 
 } // namespace Terrahertz::UnitTests

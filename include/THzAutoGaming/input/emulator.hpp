@@ -37,11 +37,17 @@ public:
     /// @return True if the button is down, false otherwise.
     bool isDown(MouseButton const button) noexcept { return _interface.isDown(button); }
 
-    /// @brief Return the state of the given key.
+    /// @brief Returns the state of the given key.
     ///
     /// @param key The key to check.
     /// @return True if the key is down, false otherwise.
     bool isDown(Key const key) noexcept { return _interface.isDown(key); }
+
+    /// @brief Returns the state of the given lock.
+    ///
+    /// @param lock The lock to check.
+    /// @return True if the lock is active, false otherwise.
+    bool isActive(KeyboardLock const lock) noexcept { return _interface.isActive(lock); }
 
     // wait
     // reset

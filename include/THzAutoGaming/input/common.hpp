@@ -141,7 +141,14 @@ enum class Key : std::uint8_t
 
 /// @brief Concept for the system interface used to 
 template <typename TInterfaceType>
-concept SystemInterface = requires(TInterfaceType systemInterface, TInterfaceType const cSystemInterface, std::uint32_t &coordinate, MouseButton const mb, Key const k) {
+concept SystemInterface = requires(
+    TInterfaceType       systemInterface,
+    TInterfaceType const cSystemInterface,
+    std::uint32_t       &coordinate,
+    MouseButton    const mb,
+    Key            const k,
+    KeyboardLock   const l) {
+
     // copy constructible
     TInterfaceType(cSystemInterface);
 
@@ -155,6 +162,8 @@ concept SystemInterface = requires(TInterfaceType systemInterface, TInterfaceTyp
     {systemInterface.isDown(mb)} noexcept -> std::same_as<bool>;
 
     {systemInterface.isDown(k)} noexcept -> std::same_as<bool>;
+
+    {systemInterface.isActive(l)} noexcept -> std::same_as<bool>;
 };
 
 // clang-format on
