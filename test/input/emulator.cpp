@@ -1,17 +1,27 @@
 #include "THzAutoGaming/input/emulator.hpp"
 
+#include <chrono>
 #include <cstdint>
 #include <gtest/gtest.h>
+#include <thread>
 
 namespace Terrahertz::UnitTests {
 
 struct Input_Emulator : public testing::Test
 {
+    using ms = std::chrono::milliseconds;
+
     struct MockSystemInterface
     {
         struct Data
         {
             bool returnValue{};
+
+            bool isDownCalled{};
+
+            bool downCalled{};
+
+            bool upCalled{};
 
             Input::MouseButton mb{};
 
@@ -34,6 +44,26 @@ struct Input_Emulator : public testing::Test
             return *this;
         }
 
+        bool isDown(Input::MouseButton const mb) noexcept
+        {
+            data->mb           = mb;
+            data->isDownCalled = true;
+            return data->returnValue;
+        }
+
+        bool isDown(Input::Key const k) noexcept
+        {
+            data->k            = k;
+            data->isDownCalled = true;
+            return data->returnValue;
+        }
+
+        bool isActive(Input::KeyboardLock const l) noexcept
+        {
+            data->l = l;
+            return data->returnValue;
+        }
+
         bool getCursorPosition(std::uint32_t &x, std::uint32_t &y) noexcept
         {
             x = data->x;
@@ -48,21 +78,27 @@ struct Input_Emulator : public testing::Test
             return data->returnValue;
         }
 
-        bool isDown(Input::MouseButton const mb) noexcept
+        bool down(Input::MouseButton const mb) noexcept
         {
             data->mb = mb;
             return data->returnValue;
         }
 
-        bool isDown(Input::Key const k) noexcept
+        bool up(Input::MouseButton const mb) noexcept
+        {
+            data->mb = mb;
+            return data->returnValue;
+        }
+
+        bool down(Input::Key const k) noexcept
         {
             data->k = k;
             return data->returnValue;
         }
 
-        bool isActive(Input::KeyboardLock const l) noexcept
+        bool up(Input::Key const k) noexcept
         {
-            data->l = l;
+            data->k = k;
             return data->returnValue;
         }
 
@@ -94,6 +130,13 @@ struct Input_Emulator : public testing::Test
         EXPECT_EQ(expected.cursorSpeedY().stddev, actual.cursorSpeedY().stddev);
     }
 };
+
+TEST_F(Input_Emulator, ConstructionCorrect)
+{
+    EXPECT_EQ(sut.errorCounter(), 0U);
+    EXPECT_EQ(sut.actionCountMouse(), 0U);
+    EXPECT_EQ(sut.actionCountKeyboard(), 0U);
+}
 
 TEST_F(Input_Emulator, ParametersCorrectAfterConstruction)
 {
@@ -138,6 +181,24 @@ TEST_F(Input_Emulator, IsKeyboardLockActive)
     systemInterfaceData.returnValue = true;
     EXPECT_TRUE(sut.isActive(Input::KeyboardLock::Num));
     EXPECT_EQ(systemInterfaceData.l, Input::KeyboardLock::Num);
+}
+
+TEST_F(Input_Emulator, MoveDoesNotBlockCaller)
+{
+    auto const startTime = std::chrono::steady_clock::now();
+    sut.moveTo(100U, 100U);
+    auto const endTime  = std::chrono::steady_clock::now();
+    auto const duration = std::chrono::duration_cast<ms>(endTime - startTime);
+    EXPECT_LE(duration.count(), 10U);
+}
+
+TEST_F(Input_Emulator, MoveResultsInCallOfSetCursorPosition)
+{
+    systemInterfaceData.returnValue = true;
+    sut.moveTo(100U, 100U);
+    std::this_thread::sleep_for(ms{10});
+    // EXPECT_EQ(systemInterfaceData.x, 100U);
+    // EXPECT_EQ(systemInterfaceData.y, 100U);
 }
 
 } // namespace Terrahertz::UnitTests

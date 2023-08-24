@@ -14,15 +14,23 @@ enum class MouseButton : std::uint8_t
     Middle   = 0x4,
     XButton1 = 0x5,
     XButton2 = 0x6
+
 };
 
+/// @brief Array of all types of mouse buttons.
+static const MouseButton MouseButtons[] = {
+    MouseButton::Left, MouseButton::Right, MouseButton::Middle, MouseButton::XButton1, MouseButton::XButton2};
+
 /// @brief Enumeration of common keyboard locks.
-enum class KeyboardLock : std::int32_t
+enum class KeyboardLock : std::uint8_t
 {
     Scroll = 0x91,
     Num    = 0x90,
     Caps   = 0x14
 };
+
+/// @brief Array of all types of keyboard locks.
+static const KeyboardLock KeyboardLocks[] = {KeyboardLock::Scroll, KeyboardLock::Num, KeyboardLock::Caps};
 
 /// @brief Enumeration of keys on the keyboard.
 enum class Key : std::uint8_t
@@ -134,8 +142,118 @@ enum class Key : std::uint8_t
     LControlKey     = 0xA2,
     RControlKey     = 0xA3,
     LAlt            = 0xA4,
-    RAlt            = 0xA5,
+    RAlt            = 0xA5
 };
+
+/// @brief Array of all types of keys.
+static const Key Keys[] = {Key::Backspace,
+                           Key::Tab,
+                           Key::Return,
+                           Key::ShiftKey,
+                           Key::ControlKey,
+                           Key::AltKey,
+                           Key::Pause,
+                           Key::CapsLock,
+                           Key::Escape,
+                           Key::Space,
+                           Key::PageUp,
+                           Key::PageDown,
+                           Key::End,
+                           Key::Pos1,
+                           Key::LeftArrow,
+                           Key::UpArrow,
+                           Key::RightArrow,
+                           Key::DownArrow,
+                           Key::Print,
+                           Key::PrintScreen,
+                           Key::Insert,
+                           Key::Delete,
+                           Key::Number0,
+                           Key::Number1,
+                           Key::Number2,
+                           Key::Number3,
+                           Key::Number4,
+                           Key::Number5,
+                           Key::Number6,
+                           Key::Number7,
+                           Key::Number8,
+                           Key::Number9,
+                           Key::A,
+                           Key::B,
+                           Key::C,
+                           Key::D,
+                           Key::E,
+                           Key::F,
+                           Key::G,
+                           Key::H,
+                           Key::I,
+                           Key::J,
+                           Key::K,
+                           Key::L,
+                           Key::M,
+                           Key::N,
+                           Key::O,
+                           Key::P,
+                           Key::Q,
+                           Key::R,
+                           Key::S,
+                           Key::T,
+                           Key::U,
+                           Key::V,
+                           Key::W,
+                           Key::X,
+                           Key::Y,
+                           Key::Z,
+                           Key::LWin,
+                           Key::RWin,
+                           Key::NumPad0,
+                           Key::NumPad1,
+                           Key::NumPad2,
+                           Key::NumPad3,
+                           Key::NumPad4,
+                           Key::NumPad5,
+                           Key::NumPad6,
+                           Key::NumPad7,
+                           Key::NumPad8,
+                           Key::NumPad9,
+                           Key::Multiply,
+                           Key::Add,
+                           Key::NumPadSeparator,
+                           Key::Subtract,
+                           Key::Decimal,
+                           Key::Divide,
+                           Key::F1,
+                           Key::F2,
+                           Key::F3,
+                           Key::F4,
+                           Key::F5,
+                           Key::F6,
+                           Key::F7,
+                           Key::F8,
+                           Key::F9,
+                           Key::F10,
+                           Key::F11,
+                           Key::F12,
+                           Key::F13,
+                           Key::F14,
+                           Key::F15,
+                           Key::F16,
+                           Key::F17,
+                           Key::F18,
+                           Key::F19,
+                           Key::F20,
+                           Key::F21,
+                           Key::F22,
+                           Key::F23,
+                           Key::F24,
+                           Key::NumLock,
+                           Key::ScrollLock,
+                           Key::LShiftKey,
+                           Key::RShiftKey,
+                           Key::LControlKey,
+                           Key::RControlKey,
+                           Key::LAlt,
+                           Key::RAlt};
 
 // clang-format off
 
@@ -155,15 +273,19 @@ concept SystemInterface = requires(
     // copy assignable
     systemInterface = cSystemInterface;
 
-    {systemInterface.getCursorPosition(coordinate, coordinate)} noexcept -> std::same_as<bool>;
+    {systemInterface.isDown(mb)} noexcept -> std::same_as<bool>;
+    {systemInterface.isDown(k)} noexcept -> std::same_as<bool>;
     
+    {systemInterface.isActive(l)} noexcept -> std::same_as<bool>;
+
+    {systemInterface.getCursorPosition(coordinate, coordinate)} noexcept -> std::same_as<bool>;
     {systemInterface.setCursorPosition(coordinate, coordinate)} noexcept -> std::same_as<bool>;
 
-    {systemInterface.isDown(mb)} noexcept -> std::same_as<bool>;
+    {systemInterface.down(mb)} noexcept -> std::same_as<bool>;
+    {systemInterface.up(mb)} noexcept -> std::same_as<bool>;
 
-    {systemInterface.isDown(k)} noexcept -> std::same_as<bool>;
-
-    {systemInterface.isActive(l)} noexcept -> std::same_as<bool>;
+    {systemInterface.down(k)} noexcept -> std::same_as<bool>;
+    {systemInterface.up(k)} noexcept -> std::same_as<bool>;
 };
 
 // clang-format on
