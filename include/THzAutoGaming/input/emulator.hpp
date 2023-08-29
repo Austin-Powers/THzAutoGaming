@@ -142,9 +142,6 @@ public:
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
 
-        // TODO deal with quese being empty
-
-        // Figure out which queue is finished first
         auto mouseQueueFinished    = _nextMouseAction;
         auto keyboardQueueFinished = _nextKeyboardAction;
         for (auto const &mouseAction : _mouseActions)
@@ -156,10 +153,29 @@ public:
             keyboardQueueFinished += keyboardAction.cooldown;
         }
 
-        if (mouseQueueFinished < keyboardQueueFinished)
-        {}
-        else
-        {}
+        if (!_mouseActions.empty() && !_keyboardActions.empty())
+        {
+            if (mouseQueueFinished > keyboardQueueFinished)
+            {
+                auto const diff = mouseQueueFinished - keyboardQueueFinished;
+                _keyboardActions.emplace_back(KeyboardAction::Type::None, Ms{diff}, Key::Return);
+            }
+            else
+            {
+                auto const diff = keyboardQueueFinished - mouseQueueFinished;
+                _mouseActions.emplace_back(MouseAction::Type::None, Ms{diff}, MouseButton::Left, 0U, 0U, 10U, 10U);
+            }
+        }
+        else if (_mouseActions.empty())
+        {
+            _nextMouseAction = keyboardQueueFinished;
+            _mouseActions.emplace_back(MouseAction::Type::None, 0U, MouseButton::Left, 0U, 0U, 10U, 10U);
+        }
+        else if (_keyboardActions.empty())
+        {
+            _nextKeyboardAction = mouseQueueFinished;
+            _keyboardActions.emplace_back(KeyboardAction::Type::None, 0U, Key::Return);
+        }
     }
 
     /// @brief Adds a move command to the mouse queue.
