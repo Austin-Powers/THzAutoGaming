@@ -1,12 +1,14 @@
 #ifndef THZ_AUTO_GAMING_INPUT_EMULATOR_HPP
 #define THZ_AUTO_GAMING_INPUT_EMULATOR_HPP
 
+#include "THzCommon/math/rectangle.hpp"
 #include "THzCommon/utility/workerThread.hpp"
 #include "common.hpp"
 #include "parameters.hpp"
 
 #include <algorithm>
 #include <deque>
+#include <random>
 #include <string_view>
 #include <utility>
 
@@ -180,60 +182,103 @@ public:
 
     /// @brief Adds a move command to the mouse queue.
     ///
-    /// @param x The target x coordinate on the screen.
-    /// @param y The target y coordinate on the screen.
-    void moveTo(std::uint32_t const x, std::uint32_t const y) noexcept {}
+    /// @param targetArea The target area on the screen.
+    void moveTo(Rectangle const &targetArea) noexcept
+    {
+        auto const    center = targetArea.center();
+        std::uint32_t x      = center.x;
+        std::uint32_t y      = center.y;
+
+        auto const accuracy = _parameters.cursorAccuracy;
+        if (accuracy != 0.0)
+        {
+            std::normal_distribution dist{0.0, accuracy};
+            x += std::uint32_t{targetArea.width * dist(_generator)};
+            y += std::uint32_t{targetArea.height * dist(_generator)};
+
+            auto const lrPoint = targetArea.lowerRightPoint();
+
+            x = std::clamp(x, targetArea.upperLeftPoint.x, lrPoint.x);
+            y = std::clamp(y, targetArea.upperLeftPoint.y, lrPoint.y);
+        }
+
+        auto const xSpeed = std::uint32_t{createRandomValue(_parameters.cursorSpeedX())};
+        auto const ySpeed = std::uint32_t{createRandomValue(_parameters.cursorSpeedY())};
+        addMouseAction(MouseAction::Type::Move, Ms{0U}, MouseButton::Left, x, y, xSpeed, ySpeed);
+    }
 
     /// @brief Clicks with the given mouse button.
     ///
     /// @param button The mouse button to click with.
-    void click(MouseButton const button) noexcept {}
+    void click(MouseButton const button) noexcept
+    {
+        down(button);
+        up(button);
+    }
 
     /// @brief Clicks with the given mouse button after moving the cursor to the given position.
     ///
     /// @param button The mouse button to click with.
-    /// @param x The x coordinate on the screen to click on.
-    /// @param y The y coordinate on the screen to click on.
-    void click(MouseButton const button, std::uint32_t const x, std::uint32_t const y) noexcept {}
+    /// @param targetArea The target area on the screen.
+    void click(MouseButton const button, Rectangle const &targetArea) noexcept
+    {
+        moveTo(targetArea);
+        click(button);
+    }
 
     /// @brief Performs a drag and drop operation.
     ///
     /// @param button The mouse button to click with.
-    /// @param startX The x coordinate on the screen to start dragging.
-    /// @param startY The y coordinate on the screen to start dragging.
-    /// @param stopX The x coordinate on the screen where to drop.
-    /// @param stopY The y coordinate on the screen where to drop.
-    void dragAndDrop(MouseButton const   button,
-                     std::uint32_t const startX,
-                     std::uint32_t const startY,
-                     std::uint32_t const stopX,
-                     std::uint32_t const stopY) noexcept
-    {}
+    /// @param startArea The start area on the screen.
+    /// @param stopArea The stop area on the screen.
+    void dragAndDrop(MouseButton const button, Rectangle const &startArea, Rectangle const &stopArea) noexcept
+    {
+        moveTo(startArea);
+        down(button);
+        moveTo(stopArea);
+        up(button);
+    }
 
     /// @brief Presses the given mouse button down.
     ///
     /// @param button The button to press down.
-    void down(MouseButton const button) noexcept {}
+    void down(MouseButton const button) noexcept
+    {
+        addMouseAction(MouseAction::Type::Down, createRandomValue(_parameters.buttonDownTime()), button);
+    }
 
     /// @brief Releases the given mouse button.
     ///
     /// @param button The mouse button to release.
-    void up(MouseButton const button) noexcept {}
+    void up(MouseButton const button) noexcept
+    {
+        addMouseAction(MouseAction::Type::Up, createRandomValue(_parameters.buttonUpTime()), button);
+    }
 
     /// @brief Presses the given key down.
     ///
     /// @param key The key to press down.
-    void down(Key const key) noexcept {}
+    void down(Key const key) noexcept
+    {
+        addKeyboardAction(KeyboardAction::Type::Down, createRandomValue(_parameters.keyDownTime), key);
+    }
 
     /// @brief Releases the given key.
     ///
     /// @param key The key to release.
-    void up(Key const key) noexcept {}
+    void up(Key const key) noexcept
+    {
+        addKeyboardAction(KeyboardAction::Type::Up, createRandomValue(_parameters.keyUpTime), key);
+    }
 
     /// @brief Presses and releases the given key.
     ///
     /// @param key The key to press and release.
-    void press(Key const key) noexcept {}
+    void press(Key const key) noexcept
+    {
+        down(key);
+        up(key);
+    }
 
     /// @brief Enters the given string via the keyboard.
     ///
@@ -317,6 +362,17 @@ private:
         /// @brief The key of the action.
         Key key;
     };
+
+    /// @brief Creates a random value based on the given value.
+    ///
+    /// @tparam T The type of value.
+    /// @param value The Value instance the random value is based on.
+    /// @return Random value using the given values and a normal distribution.
+    template <typename T>
+    T createRandomValue(Parameters::Value<T> const &value) noexcept
+    {
+        return value.mean + (value.stddev * _distribution(_generator));
+    }
 
     /// @brief Emplaces a new MouseAction instance at the back of the _mouseActions queue.
     ///
@@ -515,6 +571,12 @@ private:
 
     /// @brief Counter for the error during the execution.
     std::uint32_t _errorCounter{};
+
+    /// @brief The random number generator.
+    std::default_random_engine _generator{};
+
+    /// @brief The distribution of the random numbers.
+    std::normal_distribution<double> _distribution{-1.0, 1.0};
 };
 
 } // namespace Terrahertz::Input
