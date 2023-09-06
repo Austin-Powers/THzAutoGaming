@@ -6,33 +6,26 @@ namespace Terrahertz::Input {
 
 using ms = std::chrono::milliseconds;
 
-std::optional<Parameters> Parameters::create(Time const   pKeyDownTime,
-                                             Time const   pKeyUpTime,
-                                             Time const   pButtonDownTime,
-                                             Time const   pButtonUpTime,
-                                             double const pCursorAccuracy,
-                                             Speed const  pCursorSpeedX,
-                                             Speed const  pCursorSpeedY) noexcept
+std::optional<Parameters> Parameters::create(std::normal_distribution<> const pKeyDownTime,
+                                             std::normal_distribution<> const pKeyUpTime,
+                                             std::normal_distribution<> const pButtonDownTime,
+                                             std::normal_distribution<> const pButtonUpTime,
+                                             std::normal_distribution<> const pCursorAccuracy,
+                                             std::normal_distribution<> const pCursorSpeedX,
+                                             std::normal_distribution<> const pCursorSpeedY) noexcept
 {
-    auto const normalOrZero = [](double const value) noexcept -> bool {
-        return std::isnormal(value) || (value == 0.0);
+    auto const normalDistributionBaseCeck = [](std::normal_distribution<> const &toCeck) noexcept -> bool {
+        auto const mean   = toCeck.mean();
+        auto const stdDev = toCeck.stddev();
+        return std::isnormal(mean) && (mean > 0.0);
     };
-    auto const timeInvalid = [](Time const &time) noexcept -> bool {
-        return ((time.mean.count() < 0) || (time.stddev.count() < 0));
-    };
-    if (timeInvalid(pKeyDownTime) || timeInvalid(pKeyUpTime) || timeInvalid(pButtonDownTime) ||
-        timeInvalid(pButtonUpTime))
+    if (!normalDistributionBaseCeck(pKeyDownTime) || !normalDistributionBaseCeck(pKeyUpTime) ||
+        !normalDistributionBaseCeck(pButtonDownTime) || !normalDistributionBaseCeck(pButtonUpTime) ||
+        !normalDistributionBaseCeck(pCursorSpeedX) || !normalDistributionBaseCeck(pCursorSpeedY))
     {
         return {};
     }
-    if (!normalOrZero(pCursorAccuracy) || (pCursorAccuracy < 0.0) || (pCursorAccuracy > 1.0))
-    {
-        return {};
-    }
-    auto const speedInvalid = [&](Speed const &speed) noexcept -> bool {
-        return !std::isnormal(speed.mean) || !normalOrZero(speed.stddev) || (speed.mean <= 0.0) || (speed.stddev < 0.0);
-    };
-    if (speedInvalid(pCursorSpeedX) || speedInvalid(pCursorSpeedY))
+    if (pCursorAccuracy.mean() != 0.0)
     {
         return {};
     }
@@ -42,29 +35,34 @@ std::optional<Parameters> Parameters::create(Time const   pKeyDownTime,
 
 Parameters Parameters::Human() noexcept
 {
-    return Parameters{{ms{55}, ms{24}},
-                      {ms{108}, ms{130}},
-                      {ms{77}, ms{14}},
-                      {ms{76}, ms{21}},
-                      0.2821,
-                      {492.65, 335.93},
-                      {272.98, 211.43}};
+    return Parameters{std::normal_distribution<>{55.0, 24.0},
+                      std::normal_distribution<>{108.0, 130.0},
+                      std::normal_distribution<>{77.0, 14.0},
+                      std::normal_distribution<>{76.0, 21.0},
+                      std::normal_distribution<>{0.0, 0.2821},
+                      std::normal_distribution<>{492.65, 335.93},
+                      std::normal_distribution<>{272.98, 211.43}};
 }
 
 Parameters Parameters::Fast() noexcept
 {
 
-    return Parameters{
-        {ms{50}, ms{0}}, {ms{50}, ms{0}}, {ms{50}, ms{0}}, {ms{50}, ms{0}}, 0.0, {3840.0, 0.0}, {2160.0, 0.0}};
+    return Parameters{std::normal_distribution<>{50.0, 0.0001},
+                      std::normal_distribution<>{50.0, 0.0001},
+                      std::normal_distribution<>{50.0, 0.0001},
+                      std::normal_distribution<>{50.0, 0.0001},
+                      std::normal_distribution<>{0.0, 0.0001},
+                      std::normal_distribution<>{3840.0, 0.0001},
+                      std::normal_distribution<>{2160.0, 0.0001}};
 }
 
-Parameters::Parameters(Time const   pKeyDownTime,
-                       Time const   pKeyUpTime,
-                       Time const   pButtonDownTime,
-                       Time const   pButtonUpTime,
-                       double const pCursorAccuracy,
-                       Speed const  pCursorSpeedX,
-                       Speed const  pCursorSpeedY) noexcept
+Parameters::Parameters(std::normal_distribution<> const pKeyDownTime,
+                       std::normal_distribution<> const pKeyUpTime,
+                       std::normal_distribution<> const pButtonDownTime,
+                       std::normal_distribution<> const pButtonUpTime,
+                       std::normal_distribution<> const pCursorAccuracy,
+                       std::normal_distribution<> const pCursorSpeedX,
+                       std::normal_distribution<> const pCursorSpeedY) noexcept
     : _keyDownTime{pKeyDownTime},
       _keyUpTime{pKeyUpTime},
       _buttonDownTime{pButtonDownTime},

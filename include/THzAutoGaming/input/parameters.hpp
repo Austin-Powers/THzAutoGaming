@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <optional>
+#include <random>
 
 namespace Terrahertz::Input {
 
@@ -10,42 +11,23 @@ namespace Terrahertz::Input {
 class Parameters
 {
 public:
-    /// @brief A pair of mean and standard devation from the mean.
-    ///
-    /// @tparam T The data type of the value.
-    template <typename T>
-    struct Value
-    {
-        /// @brief The mean of the value.
-        T mean;
-
-        /// @brief The standard deviation from the mean.
-        T stddev;
-    };
-
-    /// @brief Shortcut for a timing value.
-    using Time = Value<std::chrono::milliseconds>;
-
-    /// @brief Shortcut for a speed value [pxl/s].
-    using Speed = Value<double>;
-
     /// @brief Tries to create a set of parameters from the given values.
     ///
     /// @param pKeyDownTime The duration a key is pressed.
     /// @param pKeyUpTime The duration between releasing a key and pressing the next.
     /// @param pButtonDownTime The duration a mouse button is pressed.
     /// @param pButtonUpTime The duration between releasing a mouse button and pressing the next.
-    /// @param pCursorAccuracy The standard deviation of clicks from the center of the target.
+    /// @param pCursorAccuracy The standard deviation of clicks from the center of the target, mean has to be 0.0.
     /// @param pCursorSpeedX The horizontal cursor speed [pxl/s].
     /// @param pCursorSpeedY The vertical cursor speed [pxl/s].
     /// @return The parameter set, if given values are within the correct boundaries.
-    static std::optional<Parameters> create(Time const   pKeyDownTime,
-                                            Time const   pKeyUpTime,
-                                            Time const   pButtonDownTime,
-                                            Time const   pButtonUpTime,
-                                            double const pCursorAccuracy,
-                                            Speed const  pCursorSpeedX,
-                                            Speed const  pCursorSpeedY) noexcept;
+    static std::optional<Parameters> create(std::normal_distribution<> const pKeyDownTime,
+                                            std::normal_distribution<> const pKeyUpTime,
+                                            std::normal_distribution<> const pButtonDownTime,
+                                            std::normal_distribution<> const pButtonUpTime,
+                                            std::normal_distribution<> const pCursorAccuracy,
+                                            std::normal_distribution<> const pCursorSpeedX,
+                                            std::normal_distribution<> const pCursorSpeedY) noexcept;
 
     /// @brief Returns parameters for the input emulator for a more human like input behavior.
     ///
@@ -60,38 +42,37 @@ public:
     /// @brief Returns the duration a key is pressed.
     ///
     /// @return The duration a key is pressed.
-    inline Time keyDownTime() const noexcept { return _keyDownTime; }
+    inline std::normal_distribution<> keyDownTime() const noexcept { return _keyDownTime; }
 
     /// @brief Returns the duration between releasing a key and pressing the next.
     ///
     /// @return The duration between releasing a key and pressing the next.
-    inline Time keyUpTime() const noexcept { return _keyUpTime; }
+    inline std::normal_distribution<> keyUpTime() const noexcept { return _keyUpTime; }
 
     /// @brief Returns the duration a mouse button is pressed.
     ///
     /// @return The duration a mouse button is pressed.
-    inline Time buttonDownTime() const noexcept { return _buttonDownTime; }
+    inline std::normal_distribution<> buttonDownTime() const noexcept { return _buttonDownTime; }
 
     /// @brief Returns the duration between releasing a mouse button and pressing the next.
     ///
     /// @return The duration between releasing a mouse button and pressing the next.
-    inline Time buttonUpTime() const noexcept { return _buttonUpTime; }
+    inline std::normal_distribution<> buttonUpTime() const noexcept { return _buttonUpTime; }
 
     /// @brief Returns the standard deviation of clicks from the center of the target.
     ///
     /// @return The standard deviation of clicks from the center of the target.
-    /// @remarks 0.0 always in the middle, 1.0 everywhere on the target area is equaly likely.
-    inline double cursorAccuracy() const noexcept { return _cursorAccuracy; }
+    inline std::normal_distribution<> cursorAccuracy() const noexcept { return _cursorAccuracy; }
 
     /// @brief Returns the horizontal cursor speed [pxl/s].
     ///
     /// @return The horizontal cursor speed [pxl/s].
-    inline Speed cursorSpeedX() const noexcept { return _cursorSpeedX; }
+    inline std::normal_distribution<> cursorSpeedX() const noexcept { return _cursorSpeedX; }
 
     /// @brief Returns the vertical cursor speed [pxl/s].
     ///
     /// @return The vertical cursor speed [pxl/s].
-    inline Speed cursorSpeedY() const noexcept { return _cursorSpeedY; }
+    inline std::normal_distribution<> cursorSpeedY() const noexcept { return _cursorSpeedY; }
 
 private:
     /// @brief Initializes a new set of parameters using the given values.
@@ -103,36 +84,37 @@ private:
     /// @param pCursorAccuracy The standard deviation of clicks from the center of the target.
     /// @param pCursorSpeedX The horizontal cursor speed [pxl/s].
     /// @param pCursorSpeedY The vertical cursor speed [pxl/s].
-    Parameters(Time const   pKeyDownTime,
-               Time const   pKeyUpTime,
-               Time const   pButtonDownTime,
-               Time const   pButtonUpTime,
-               double const pCursorAccuracy,
-               Speed const  pCursorSpeedX,
-               Speed const  pCursorSpeedY) noexcept;
+    Parameters(std::normal_distribution<> const pKeyDownTime,
+               std::normal_distribution<> const pKeyUpTime,
+               std::normal_distribution<> const pButtonDownTime,
+               std::normal_distribution<> const pButtonUpTime,
+               std::normal_distribution<> const pCursorAccuracy,
+               std::normal_distribution<> const pCursorSpeedX,
+               std::normal_distribution<> const pCursorSpeedY) noexcept;
 
     /// @brief The duration a key is pressed.
-    Time _keyDownTime;
+    std::normal_distribution<> _keyDownTime;
 
     /// @brief The duration between releasing a key and pressing the next.
-    Time _keyUpTime;
+    std::normal_distribution<> _keyUpTime;
 
     /// @brief The duration a mouse button is pressed.
-    Time _buttonDownTime;
+    std::normal_distribution<> _buttonDownTime;
 
     /// @brief The duration between releasing a mouse button and pressing the next.
-    Time _buttonUpTime;
+    std::normal_distribution<> _buttonUpTime;
 
     /// @brief The standard deviation of clicks from the center of the target.
-    ///
-    /// @remarks 0.0 always in the middle, 1.0 everywhere on the target area is equaly likely.
-    double _cursorAccuracy;
+    std::normal_distribution<> _cursorAccuracy;
 
     /// @brief The horizontal cursor speed [pxl/s].
-    Speed _cursorSpeedX;
+    std::normal_distribution<> _cursorSpeedX;
 
     /// @brief The vertical cursor speed [pxl/s].
-    Speed _cursorSpeedY;
+    std::normal_distribution<> _cursorSpeedY;
+
+    /// @brief The random number generator.
+    std::default_random_engine _generator{};
 };
 
 } // namespace Terrahertz::Input

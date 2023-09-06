@@ -9,75 +9,83 @@ namespace Terrahertz::UnitTests {
 
 struct Input_Parameters : public testing::Test
 {
-    using Time  = Input::Parameters::Time;
-    using Speed = Input::Parameters::Speed;
-    using ms    = std::chrono::milliseconds;
+    using normal = std::normal_distribution<>;
 
-    Time   keyDownTime{ms{365}, ms{122}};
-    Time   keyUpTime{ms{675}, ms{178}};
-    Time   buttonDownTime{ms{221}, ms{54}};
-    Time   buttonUpTime{ms{675}, ms{20}};
-    double cursorAccuracy{0.4};
-    Speed  cursorSpeedX{222.2, 22.5};
-    Speed  cursorSpeedY{120.5, 10.6};
+    double keyDownTimeMean{365.0};
+    double keyDownTimeStdDev{122.0};
+    double keyUpTimeMean{675.0};
+    double keyUpTimeStdDev{178.0};
+    double buttonDownTimeMean{221.0};
+    double buttonDownTimeStdDev{54.0};
+    double buttonUpTimeMean{675.0};
+    double buttonUpTimeStdDev{20.0};
+    double cursorAccuracyMean{0.0};
+    double cursorAccuracyStdDev{0.4};
+    double cursorSpeedXMean{222.2};
+    double cursorSpeedXStdDev{22.5};
+    double cursorSpeedYMean{120.5};
+    double cursorSpeedYStdDev{10.6};
 
-    template <typename T>
-    void testCreationWithInvalidParameter(T &parameter, T const tempValue) noexcept
+    void testCreationWithInvalidValue(double &parameter, double const value) noexcept
     {
-        T const temp = parameter;
-        parameter    = tempValue;
-        EXPECT_FALSE(
-            Input::Parameters::create(
-                keyDownTime, keyUpTime, buttonDownTime, buttonUpTime, cursorAccuracy, cursorSpeedX, cursorSpeedY)
-                .has_value());
+        double const temp = parameter;
+        parameter         = value;
+        EXPECT_FALSE(Input::Parameters::create(normal{keyDownTimeMean, keyDownTimeStdDev},
+                                               normal{keyUpTimeMean, keyUpTimeStdDev},
+                                               normal{buttonDownTimeMean, buttonDownTimeStdDev},
+                                               normal{buttonUpTimeMean, buttonUpTimeStdDev},
+                                               normal{cursorAccuracyMean, cursorAccuracyStdDev},
+                                               normal{cursorSpeedXMean, cursorSpeedXStdDev},
+                                               normal{cursorSpeedYMean, cursorSpeedYStdDev})
+                         .has_value());
         parameter = temp;
+    }
+
+    void testCreationWithInvalidValues(double &value, double const t) noexcept
+    {
+        testCreationWithInvalidValue(value, t);
+        testCreationWithInvalidValue(value, std::numeric_limits<double>::quiet_NaN());
+        testCreationWithInvalidValue(value, std::numeric_limits<double>::infinity());
     }
 };
 
 TEST_F(Input_Parameters, CreationReturnsEmptyOptionalIfGivenInvalidParameters)
 {
-    testCreationWithInvalidParameter(keyDownTime.mean, ms{-1});
-    testCreationWithInvalidParameter(keyDownTime.stddev, ms{-1});
-    testCreationWithInvalidParameter(keyUpTime.mean, ms{-1});
-    testCreationWithInvalidParameter(keyUpTime.stddev, ms{-1});
-    testCreationWithInvalidParameter(buttonDownTime.mean, ms{-1});
-    testCreationWithInvalidParameter(buttonDownTime.stddev, ms{-1});
-    testCreationWithInvalidParameter(buttonUpTime.mean, ms{-1});
-    testCreationWithInvalidParameter(buttonUpTime.stddev, ms{-1});
-
-    auto const testDouble = [&](double &value, double const t0, double const t1) noexcept {
-        testCreationWithInvalidParameter(value, t0);
-        testCreationWithInvalidParameter(value, t1);
-        testCreationWithInvalidParameter(value, std::numeric_limits<double>::quiet_NaN());
-        testCreationWithInvalidParameter(value, std::numeric_limits<double>::infinity());
-    };
-    testDouble(cursorAccuracy, -0.0001, 1.0001);
-    testDouble(cursorSpeedX.mean, -0.0001, 0.0);
-    testDouble(cursorSpeedX.stddev, -0.0001, -0.0001);
-    testDouble(cursorSpeedY.mean, -0.0001, 0.0);
-    testDouble(cursorSpeedY.stddev, -0.0001, -0.0001);
+    testCreationWithInvalidValues(keyDownTimeMean, -1.0);
+    testCreationWithInvalidValues(keyUpTimeMean, -1.0);
+    testCreationWithInvalidValues(buttonDownTimeMean, -1.0);
+    testCreationWithInvalidValues(buttonUpTimeMean, -1.0);
+    testCreationWithInvalidValues(cursorAccuracyMean, -1.0);
+    testCreationWithInvalidValue(cursorAccuracyMean, 1.0);
+    testCreationWithInvalidValues(cursorSpeedXMean, -1.0);
+    testCreationWithInvalidValues(cursorSpeedYMean, -1.0);
 }
 
 TEST_F(Input_Parameters, DataStoredCorrectly)
 {
-    auto const sut =
-        Input::Parameters::create(
-            keyDownTime, keyUpTime, buttonDownTime, buttonUpTime, cursorAccuracy, cursorSpeedX, cursorSpeedY)
-            .value();
+    auto const sut = Input::Parameters::create(normal{keyDownTimeMean, keyDownTimeStdDev},
+                                               normal{keyUpTimeMean, keyUpTimeStdDev},
+                                               normal{buttonDownTimeMean, buttonDownTimeStdDev},
+                                               normal{buttonUpTimeMean, buttonUpTimeStdDev},
+                                               normal{cursorAccuracyMean, cursorAccuracyStdDev},
+                                               normal{cursorSpeedXMean, cursorSpeedXStdDev},
+                                               normal{cursorSpeedYMean, cursorSpeedYStdDev})
+                         .value();
 
-    EXPECT_EQ(sut.keyDownTime().mean, keyDownTime.mean);
-    EXPECT_EQ(sut.keyDownTime().stddev, keyDownTime.stddev);
-    EXPECT_EQ(sut.keyUpTime().mean, keyUpTime.mean);
-    EXPECT_EQ(sut.keyUpTime().stddev, keyUpTime.stddev);
-    EXPECT_EQ(sut.buttonDownTime().mean, buttonDownTime.mean);
-    EXPECT_EQ(sut.buttonDownTime().stddev, buttonDownTime.stddev);
-    EXPECT_EQ(sut.buttonUpTime().mean, buttonUpTime.mean);
-    EXPECT_EQ(sut.buttonUpTime().stddev, buttonUpTime.stddev);
-    EXPECT_EQ(sut.cursorAccuracy(), cursorAccuracy);
-    EXPECT_EQ(sut.cursorSpeedX().mean, cursorSpeedX.mean);
-    EXPECT_EQ(sut.cursorSpeedX().stddev, cursorSpeedX.stddev);
-    EXPECT_EQ(sut.cursorSpeedY().mean, cursorSpeedY.mean);
-    EXPECT_EQ(sut.cursorSpeedY().stddev, cursorSpeedY.stddev);
+    EXPECT_EQ(sut.keyDownTime().mean(), keyDownTimeMean);
+    EXPECT_EQ(sut.keyDownTime().stddev(), keyDownTimeStdDev);
+    EXPECT_EQ(sut.keyUpTime().mean(), keyUpTimeMean);
+    EXPECT_EQ(sut.keyUpTime().stddev(), keyUpTimeStdDev);
+    EXPECT_EQ(sut.buttonDownTime().mean(), buttonDownTimeMean);
+    EXPECT_EQ(sut.buttonDownTime().stddev(), buttonDownTimeStdDev);
+    EXPECT_EQ(sut.buttonUpTime().mean(), buttonUpTimeMean);
+    EXPECT_EQ(sut.buttonUpTime().stddev(), buttonUpTimeStdDev);
+    EXPECT_EQ(sut.cursorAccuracy().mean(), cursorAccuracyMean);
+    EXPECT_EQ(sut.cursorAccuracy().stddev(), cursorAccuracyStdDev);
+    EXPECT_EQ(sut.cursorSpeedX().mean(), cursorSpeedXMean);
+    EXPECT_EQ(sut.cursorSpeedX().stddev(), cursorSpeedXStdDev);
+    EXPECT_EQ(sut.cursorSpeedY().mean(), cursorSpeedYMean);
+    EXPECT_EQ(sut.cursorSpeedY().stddev(), cursorSpeedYStdDev);
 }
 
 TEST_F(Input_Parameters, PresetsValid)

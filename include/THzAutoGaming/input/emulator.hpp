@@ -8,7 +8,6 @@
 
 #include <algorithm>
 #include <deque>
-#include <random>
 #include <string_view>
 #include <utility>
 
@@ -185,26 +184,26 @@ public:
     /// @param targetArea The target area on the screen.
     void moveTo(Rectangle const &targetArea) noexcept
     {
-        auto const    center = targetArea.center();
-        std::uint32_t x      = center.x;
-        std::uint32_t y      = center.y;
-
-        auto const accuracy = _parameters.cursorAccuracy;
-        if (accuracy != 0.0)
-        {
-            std::normal_distribution dist{0.0, accuracy};
-            x += std::uint32_t{targetArea.width * dist(_generator)};
-            y += std::uint32_t{targetArea.height * dist(_generator)};
-
-            auto const lrPoint = targetArea.lowerRightPoint();
-
-            x = std::clamp(x, targetArea.upperLeftPoint.x, lrPoint.x);
-            y = std::clamp(y, targetArea.upperLeftPoint.y, lrPoint.y);
-        }
-
-        auto const xSpeed = std::uint32_t{createRandomValue(_parameters.cursorSpeedX())};
-        auto const ySpeed = std::uint32_t{createRandomValue(_parameters.cursorSpeedY())};
-        addMouseAction(MouseAction::Type::Move, Ms{0U}, MouseButton::Left, x, y, xSpeed, ySpeed);
+        // auto const    center = targetArea.center();
+        // std::uint32_t x      = center.x;
+        // std::uint32_t y      = center.y;
+        //
+        // auto const accuracy = _parameters.cursorAccuracy;
+        // if (accuracy != 0.0)
+        //{
+        //     std::normal_distribution dist{0.0, accuracy};
+        //     x += std::uint32_t{targetArea.width * dist(_generator)};
+        //     y += std::uint32_t{targetArea.height * dist(_generator)};
+        //
+        //     auto const lrPoint = targetArea.lowerRightPoint();
+        //
+        //     x = std::clamp(x, targetArea.upperLeftPoint.x, lrPoint.x);
+        //     y = std::clamp(y, targetArea.upperLeftPoint.y, lrPoint.y);
+        // }
+        //
+        // auto const xSpeed = std::uint32_t{createRandomValue(_parameters.cursorSpeedX())};
+        // auto const ySpeed = std::uint32_t{createRandomValue(_parameters.cursorSpeedY())};
+        // addMouseAction(MouseAction::Type::Move, Ms{0U}, MouseButton::Left, x, y, xSpeed, ySpeed);
     }
 
     /// @brief Clicks with the given mouse button.
@@ -244,7 +243,7 @@ public:
     /// @param button The button to press down.
     void down(MouseButton const button) noexcept
     {
-        addMouseAction(MouseAction::Type::Down, createRandomValue(_parameters.buttonDownTime()), button);
+        // addMouseAction(MouseAction::Type::Down, createRandomValue(_parameters.buttonDownTime()), button);
     }
 
     /// @brief Releases the given mouse button.
@@ -252,7 +251,7 @@ public:
     /// @param button The mouse button to release.
     void up(MouseButton const button) noexcept
     {
-        addMouseAction(MouseAction::Type::Up, createRandomValue(_parameters.buttonUpTime()), button);
+        // addMouseAction(MouseAction::Type::Up, createRandomValue(_parameters.buttonUpTime()), button);
     }
 
     /// @brief Presses the given key down.
@@ -260,7 +259,7 @@ public:
     /// @param key The key to press down.
     void down(Key const key) noexcept
     {
-        addKeyboardAction(KeyboardAction::Type::Down, createRandomValue(_parameters.keyDownTime), key);
+        // addKeyboardAction(KeyboardAction::Type::Down, createRandomValue(_parameters.keyDownTime), key);
     }
 
     /// @brief Releases the given key.
@@ -268,7 +267,7 @@ public:
     /// @param key The key to release.
     void up(Key const key) noexcept
     {
-        addKeyboardAction(KeyboardAction::Type::Up, createRandomValue(_parameters.keyUpTime), key);
+        // addKeyboardAction(KeyboardAction::Type::Up, createRandomValue(_parameters.keyUpTime), key);
     }
 
     /// @brief Presses and releases the given key.
@@ -362,17 +361,6 @@ private:
         /// @brief The key of the action.
         Key key;
     };
-
-    /// @brief Creates a random value based on the given value.
-    ///
-    /// @tparam T The type of value.
-    /// @param value The Value instance the random value is based on.
-    /// @return Random value using the given values and a normal distribution.
-    template <typename T>
-    T createRandomValue(Parameters::Value<T> const &value) noexcept
-    {
-        return value.mean + (value.stddev * _distribution(_generator));
-    }
 
     /// @brief Emplaces a new MouseAction instance at the back of the _mouseActions queue.
     ///
@@ -571,12 +559,6 @@ private:
 
     /// @brief Counter for the error during the execution.
     std::uint32_t _errorCounter{};
-
-    /// @brief The random number generator.
-    std::default_random_engine _generator{};
-
-    /// @brief The distribution of the random numbers.
-    std::normal_distribution<double> _distribution{-1.0, 1.0};
 };
 
 } // namespace Terrahertz::Input
