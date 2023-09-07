@@ -2,6 +2,7 @@ set(PROJECTNAME THzAutoGaming.Tests)
 
 add_executable(${PROJECTNAME}
 	input/emulator.cpp
+	input/normalDeviationStrategy.cpp
 	input/parameters.cpp
 	optimisation/evolution/algorithm.cpp
 	simulations/tileMatchingPuzzle.cpp

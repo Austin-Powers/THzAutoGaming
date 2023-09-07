@@ -112,9 +112,6 @@ private:
 
     /// @brief The vertical cursor speed [pxl/s].
     std::normal_distribution<> _cursorSpeedY;
-
-    /// @brief The random number generator.
-    std::default_random_engine _generator{};
 };
 
 } // namespace Terrahertz::Input
