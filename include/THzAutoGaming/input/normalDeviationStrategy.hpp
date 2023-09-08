@@ -22,7 +22,16 @@ public:
     /// @copydoc IDeviationStrategy::calculateKeyDownTime
     std::chrono::milliseconds calculateKeyDownTime() noexcept override;
 
+    /// @copydoc IDeviationStrategy::calculateKeyUpTime
+    std::chrono::milliseconds calculateKeyUpTime() noexcept override;
+
 private:
+    /// @brief Calculates the next value for the given distribution.
+    ///
+    /// @param distribution The distribution for the next value.
+    /// @return The next value.
+    std::uint32_t calculateValueUsing(std::normal_distribution<> const &distribution) noexcept;
+
     /// @brief The parameters used by this strategy.
     Parameters _parameters;
 

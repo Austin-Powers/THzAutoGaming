@@ -8,14 +8,24 @@ NormalDeviationStrategy::NormalDeviationStrategy(Parameters const &pParameters) 
 
 std::chrono::milliseconds NormalDeviationStrategy::calculateKeyDownTime() noexcept
 {
-    auto const &distr    = _parameters.keyDownTime();
-    auto const  maxValue = distr.mean() + (3.0 * distr.stddev());
-    auto        result   = 0.0;
+    return std::chrono::milliseconds{calculateValueUsing(_parameters.keyDownTime())};
+}
+
+std::chrono::milliseconds NormalDeviationStrategy::calculateKeyUpTime() noexcept
+{
+    return std::chrono::milliseconds{calculateValueUsing(_parameters.keyUpTime())};
+}
+
+std::uint32_t NormalDeviationStrategy::calculateValueUsing(std::normal_distribution<> const &distribution) noexcept
+{
+    auto const maxValue = distribution.mean() + (3.0 * distribution.stddev());
+
+    auto result = 0.0;
     while ((result <= 0.0) || (result >= maxValue))
     {
         result = _parameters.keyDownTime()(_generator);
     }
-    return std::chrono::milliseconds{static_cast<std::uint32_t>(result)};
+    return static_cast<std::uint32_t>(result);
 }
 
 } // namespace Terrahertz::Input
