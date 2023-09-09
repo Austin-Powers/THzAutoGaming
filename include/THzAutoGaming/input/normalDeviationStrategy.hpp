@@ -34,6 +34,9 @@ public:
     /// @copydoc IDeviationStrategy::calculateTargetIn
     [[nodiscard]] Point calculateTargetIn(Rectangle const &area) noexcept override;
 
+    /// @copydoc IDeviationStrategy::calculateSpeedX
+    [[nodiscard]] std::uint32_t calculateSpeedX() noexcept override;
+
 private:
     /// @brief Calculates the next value for the given distribution.
     ///

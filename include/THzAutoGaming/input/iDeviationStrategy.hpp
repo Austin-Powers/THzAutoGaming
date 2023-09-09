@@ -41,6 +41,11 @@ public:
     /// @param area The area the target should be in.
     /// @return The point representing the target.
     [[nodiscard]] virtual Point calculateTargetIn(Rectangle const &area) noexcept = 0;
+
+    /// @brief Calculates the speed of the cursor on the x coordinate [pxl/s].
+    ///
+    /// @return The speed of the cursor on the x coordinate [pxl/s].
+    [[nodiscard]] virtual std::uint32_t calculateSpeedX() noexcept = 0;
 };
 
 } // namespace Terrahertz::Input
