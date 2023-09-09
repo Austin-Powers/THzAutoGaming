@@ -128,4 +128,25 @@ TEST_F(Input_NormalDeviationStrategy, CalculateButtonUpTime)
     EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
 }
 
+TEST_F(Input_NormalDeviationStrategy, CalculateTargetIn)
+{
+    Rectangle const targetArea{160, 90, 320, 180};
+
+    auto lastValue = sut.calculateTargetIn(targetArea);
+    EXPECT_TRUE(targetArea.encloses(lastValue));
+
+    auto lastAndCurrentAreEqualCounter = 0U;
+    for (auto i = 0U; i < 64U; ++i)
+    {
+        auto const currentValue = sut.calculateTargetIn(targetArea);
+        EXPECT_TRUE(targetArea.encloses(currentValue));
+        if (currentValue == lastValue)
+        {
+            ++lastAndCurrentAreEqualCounter;
+        }
+        lastValue = currentValue;
+    }
+    EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
+}
+
 } // namespace Terrahertz::UnitTests

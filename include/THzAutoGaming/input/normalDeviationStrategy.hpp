@@ -17,26 +17,29 @@ public:
     /// @brief Returns the parameters used by this strategy.
     ///
     /// @return The parameters used by this strategy.
-    inline Parameters const &parameters() const noexcept { return _parameters; }
+    [[nodiscard]] inline Parameters const &parameters() const noexcept { return _parameters; }
 
     /// @copydoc IDeviationStrategy::calculateKeyDownTime
-    std::chrono::milliseconds calculateKeyDownTime() noexcept override;
+    [[nodiscard]] std::chrono::milliseconds calculateKeyDownTime() noexcept override;
 
     /// @copydoc IDeviationStrategy::calculateKeyUpTime
-    std::chrono::milliseconds calculateKeyUpTime() noexcept override;
+    [[nodiscard]] std::chrono::milliseconds calculateKeyUpTime() noexcept override;
 
     /// @copydoc IDeviationStrategy::calculateButtonDownTime
-    std::chrono::milliseconds calculateButtonDownTime() noexcept override;
+    [[nodiscard]] std::chrono::milliseconds calculateButtonDownTime() noexcept override;
 
     /// @copydoc IDeviationStrategy::calculateButtonUpTime
-    std::chrono::milliseconds calculateButtonUpTime() noexcept override;
+    [[nodiscard]] std::chrono::milliseconds calculateButtonUpTime() noexcept override;
+
+    /// @copydoc IDeviationStrategy::calculateTargetIn
+    [[nodiscard]] Point calculateTargetIn(Rectangle const &area) noexcept override;
 
 private:
     /// @brief Calculates the next value for the given distribution.
     ///
     /// @param distribution The distribution for the next value.
     /// @return The next value.
-    std::uint32_t calculateValueUsing(std::normal_distribution<> const &distribution) noexcept;
+    [[nodiscard]] std::uint32_t calculateValueUsing(std::normal_distribution<> const &distribution) noexcept;
 
     /// @brief The parameters used by this strategy.
     Parameters _parameters;
