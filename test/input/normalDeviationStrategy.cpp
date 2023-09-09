@@ -173,4 +173,28 @@ TEST_F(Input_NormalDeviationStrategy, CalculateSpeedX)
     EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
 }
 
+TEST_F(Input_NormalDeviationStrategy, CalculateSpeedY)
+{
+    auto const parameter = Input::Parameters::Human().cursorSpeedY();
+    auto const maxValue  = static_cast<std::uint32_t>(parameter.mean() + (3.0 * parameter.stddev()));
+
+    auto lastValue = sut.calculateSpeedY();
+    EXPECT_GT(lastValue, 0U);
+    EXPECT_LT(lastValue, maxValue);
+
+    auto lastAndCurrentAreEqualCounter = 0U;
+    for (auto i = 0U; i < 64U; ++i)
+    {
+        auto const currentValue = sut.calculateSpeedY();
+        EXPECT_GT(currentValue, 0U);
+        EXPECT_LT(currentValue, maxValue);
+        if (currentValue == lastValue)
+        {
+            ++lastAndCurrentAreEqualCounter;
+        }
+        lastValue = currentValue;
+    }
+    EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
+}
+
 } // namespace Terrahertz::UnitTests

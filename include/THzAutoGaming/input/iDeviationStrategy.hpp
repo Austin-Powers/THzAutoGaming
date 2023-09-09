@@ -46,6 +46,11 @@ public:
     ///
     /// @return The speed of the cursor on the x coordinate [pxl/s].
     [[nodiscard]] virtual std::uint32_t calculateSpeedX() noexcept = 0;
+
+    /// @brief Calculates the speed of the cursor on the y coordinate [pxl/s].
+    ///
+    /// @return The speed of the cursor on the y coordinate [pxl/s].
+    [[nodiscard]] virtual std::uint32_t calculateSpeedY() noexcept = 0;
 };
 
 } // namespace Terrahertz::Input

@@ -42,6 +42,11 @@ std::uint32_t NormalDeviationStrategy::calculateSpeedX() noexcept
     return calculateValueUsing(_parameters.cursorSpeedX());
 }
 
+std::uint32_t NormalDeviationStrategy::calculateSpeedY() noexcept
+{
+    return calculateValueUsing(_parameters.cursorSpeedY());
+}
+
 std::uint32_t NormalDeviationStrategy::calculateValueUsing(std::normal_distribution<> const &distribution) noexcept
 {
     auto const maxValue = distribution.mean() + (3.0 * distribution.stddev());

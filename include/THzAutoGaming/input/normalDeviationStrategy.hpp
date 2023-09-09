@@ -37,6 +37,9 @@ public:
     /// @copydoc IDeviationStrategy::calculateSpeedX
     [[nodiscard]] std::uint32_t calculateSpeedX() noexcept override;
 
+    /// @copydoc IDeviationStrategy::calculateSpeedY
+    [[nodiscard]] std::uint32_t calculateSpeedY() noexcept override;
+
 private:
     /// @brief Calculates the next value for the given distribution.
     ///
