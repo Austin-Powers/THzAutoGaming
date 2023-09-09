@@ -16,6 +16,11 @@ std::chrono::milliseconds NormalDeviationStrategy::calculateKeyUpTime() noexcept
     return std::chrono::milliseconds{calculateValueUsing(_parameters.keyUpTime())};
 }
 
+std::chrono::milliseconds NormalDeviationStrategy::calculateButtonDownTime() noexcept
+{
+    return std::chrono::milliseconds{calculateValueUsing(_parameters.buttonDownTime())};
+}
+
 std::uint32_t NormalDeviationStrategy::calculateValueUsing(std::normal_distribution<> const &distribution) noexcept
 {
     auto const maxValue = distribution.mean() + (3.0 * distribution.stddev());
