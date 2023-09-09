@@ -28,6 +28,9 @@ public:
     /// @copydoc IDeviationStrategy::calculateButtonDownTime
     std::chrono::milliseconds calculateButtonDownTime() noexcept override;
 
+    /// @copydoc IDeviationStrategy::calculateButtonUpTime
+    std::chrono::milliseconds calculateButtonUpTime() noexcept override;
+
 private:
     /// @brief Calculates the next value for the given distribution.
     ///

@@ -27,7 +27,11 @@ public:
     /// @return The duration for which a button has to be in the down position.
     virtual std::chrono::milliseconds calculateButtonDownTime() noexcept = 0;
 
-    // virtual std::chrono::milliseconds calculateButtonUpTime() noexcept   = 0;
+    /// @brief Calculates the duration for which a button has to be in the up position before the next action on the
+    /// mouse.
+    ///
+    /// @return The duration for which a button has to be in the up position.
+    virtual std::chrono::milliseconds calculateButtonUpTime() noexcept = 0;
 };
 
 } // namespace Terrahertz::Input

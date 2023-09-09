@@ -104,4 +104,28 @@ TEST_F(Input_NormalDeviationStrategy, CalculateButtonDownTime)
     EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
 }
 
+TEST_F(Input_NormalDeviationStrategy, CalculateButtonUpTime)
+{
+    auto const parameter = Input::Parameters::Human().buttonUpTime();
+    auto const maxValue  = static_cast<std::uint32_t>(parameter.mean() + (3.0 * parameter.stddev()));
+
+    auto lastValue = sut.calculateButtonUpTime();
+    EXPECT_GT(lastValue.count(), 0U);
+    EXPECT_LT(lastValue.count(), maxValue);
+
+    auto lastAndCurrentAreEqualCounter = 0U;
+    for (auto i = 0U; i < 64U; ++i)
+    {
+        auto const currentValue = sut.calculateButtonUpTime();
+        EXPECT_GT(currentValue.count(), 0U);
+        EXPECT_LT(currentValue.count(), maxValue);
+        if (currentValue == lastValue)
+        {
+            ++lastAndCurrentAreEqualCounter;
+        }
+        lastValue = currentValue;
+    }
+    EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
+}
+
 } // namespace Terrahertz::UnitTests
