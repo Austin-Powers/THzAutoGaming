@@ -1,3 +1,6 @@
+#ifndef THZ_AUTO_GAMING_INPUT_NORMALDEVIATIONSTRATEGY_HPP
+#define THZ_AUTO_GAMING_INPUT_NORMALDEVIATIONSTRATEGY_HPP
+
 #include "iDeviationStrategy.hpp"
 #include "parameters.hpp"
 
@@ -55,3 +58,5 @@ private:
 };
 
 } // namespace Terrahertz::Input
+
+#endif // !THZ_AUTO_GAMING_INPUT_NORMALDEVIATIONSTRATEGY_HPP

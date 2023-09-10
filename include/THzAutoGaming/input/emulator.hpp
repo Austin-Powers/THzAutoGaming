@@ -4,6 +4,8 @@
 #include "THzCommon/math/rectangle.hpp"
 #include "THzCommon/utility/workerThread.hpp"
 #include "common.hpp"
+#include "iDeviationStrategy.hpp"
+#include "normalDeviationStrategy.hpp"
 #include "parameters.hpp"
 
 #include <algorithm>
@@ -18,12 +20,12 @@ template <SystemInterface TSystemInterface>
 class Emulator
 {
 public:
-    /// @brief Initializes a new Emulator using the given parameters and interface
+    /// @brief Initializes a new Emulator using the given parameters and interface.
     ///
-    /// @param parameters
-    /// @param sysInterface
+    /// @param parameters The parameter used for the NormalDeviationStrategy.
+    /// @param sysInterface The interface to use for the inputs.
     Emulator(Parameters const &pParameters, TSystemInterface pInterface = {}) noexcept
-        : _parameters{pParameters}, _interface{pInterface}
+        : _defaultStrategy{pParameters}, _strategy{&_defaultStrategy}, _interface{pInterface}
     {
         _worker.thread = std::thread([this]() { threadMethod(); });
     }
@@ -31,10 +33,10 @@ public:
     /// @brief Finalizes this Emulator instance.
     ~Emulator() noexcept { _worker.shutdown(); }
 
-    /// @brief Returns the parameters used by the emulator.
+    /// @brief Returns a pointer to the strategy used by the emulator.
     ///
-    /// @return The parameters used by the emulator.
-    [[nodiscard]] inline Parameters const &parametes() const noexcept { return _parameters; }
+    /// @return A pointer to the strategy used by the emulator.
+    [[nodiscard]] inline IDeviationStrategy *strategy() const noexcept { return _strategy; }
 
     /// @brief Returns the current position of the cursor on the screen.
     ///
@@ -184,26 +186,10 @@ public:
     /// @param targetArea The target area on the screen.
     void moveTo(Rectangle const &targetArea) noexcept
     {
-        // auto const    center = targetArea.center();
-        // std::uint32_t x      = center.x;
-        // std::uint32_t y      = center.y;
-        //
-        // auto const accuracy = _parameters.cursorAccuracy;
-        // if (accuracy != 0.0)
-        //{
-        //     std::normal_distribution dist{0.0, accuracy};
-        //     x += std::uint32_t{targetArea.width * dist(_generator)};
-        //     y += std::uint32_t{targetArea.height * dist(_generator)};
-        //
-        //     auto const lrPoint = targetArea.lowerRightPoint();
-        //
-        //     x = std::clamp(x, targetArea.upperLeftPoint.x, lrPoint.x);
-        //     y = std::clamp(y, targetArea.upperLeftPoint.y, lrPoint.y);
-        // }
-        //
-        // auto const xSpeed = std::uint32_t{createRandomValue(_parameters.cursorSpeedX())};
-        // auto const ySpeed = std::uint32_t{createRandomValue(_parameters.cursorSpeedY())};
-        // addMouseAction(MouseAction::Type::Move, Ms{0U}, MouseButton::Left, x, y, xSpeed, ySpeed);
+        auto const target = _strategy->calculateTargetIn(targetArea);
+        auto const speedX = _strategy->calculateSpeedX();
+        auto const speedY = _strategy->calculateSpeedY();
+        addMouseAction(MouseAction::Type::Move, Ms{0U}, MouseButton::Left, target.x, target.y, speedX, speedY);
     }
 
     /// @brief Clicks with the given mouse button.
@@ -243,7 +229,7 @@ public:
     /// @param button The button to press down.
     void down(MouseButton const button) noexcept
     {
-        // addMouseAction(MouseAction::Type::Down, createRandomValue(_parameters.buttonDownTime()), button);
+        addMouseAction(MouseAction::Type::Down, _strategy->calculateButtonDownTime(), button);
     }
 
     /// @brief Releases the given mouse button.
@@ -251,7 +237,7 @@ public:
     /// @param button The mouse button to release.
     void up(MouseButton const button) noexcept
     {
-        // addMouseAction(MouseAction::Type::Up, createRandomValue(_parameters.buttonUpTime()), button);
+        addMouseAction(MouseAction::Type::Up, _strategy->calculateButtonUpTime(), button);
     }
 
     /// @brief Presses the given key down.
@@ -259,7 +245,7 @@ public:
     /// @param key The key to press down.
     void down(Key const key) noexcept
     {
-        // addKeyboardAction(KeyboardAction::Type::Down, createRandomValue(_parameters.keyDownTime), key);
+        addKeyboardAction(KeyboardAction::Type::Down, _strategy->calculateKeyDownTime(), key);
     }
 
     /// @brief Releases the given key.
@@ -267,7 +253,7 @@ public:
     /// @param key The key to release.
     void up(Key const key) noexcept
     {
-        // addKeyboardAction(KeyboardAction::Type::Up, createRandomValue(_parameters.keyUpTime), key);
+        addKeyboardAction(KeyboardAction::Type::Up, _strategy->calculateKeyUpTime(), key);
     }
 
     /// @brief Presses and releases the given key.
@@ -536,8 +522,11 @@ private:
         }
     }
 
-    /// @brief The parameters used by the emulator.
-    Parameters _parameters;
+    /// @brief The default deviation strategy if no other is given.
+    NormalDeviationStrategy _defaultStrategy;
+
+    /// @brief The pointer to the currently used devation strategy.
+    IDeviationStrategy *_strategy{};
 
     /// @brief The interface used by the emulator.
     TSystemInterface _interface;

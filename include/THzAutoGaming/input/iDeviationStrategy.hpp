@@ -1,3 +1,6 @@
+#ifndef THZ_AUTO_GAMING_INPUT_IDEVIATIONSTRATEGY_HPP
+#define THZ_AUTO_GAMING_INPUT_IDEVIATIONSTRATEGY_HPP
+
 #include "THzCommon/math/point.hpp"
 #include "THzCommon/math/rectangle.hpp"
 
@@ -54,3 +57,5 @@ public:
 };
 
 } // namespace Terrahertz::Input
+
+#endif // !THZ_AUTO_GAMING_INPUT_IDEVIATIONSTRATEGY_HPP
