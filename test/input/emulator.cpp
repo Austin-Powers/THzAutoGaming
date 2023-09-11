@@ -80,6 +80,8 @@ struct Input_Emulator : public testing::Test
             return data->returnValue;
         }
 
+        bool turnMouseWheel(std::int16_t const steps) noexcept { return data->returnValue; }
+
         bool down(Input::MouseButton const mb) noexcept
         {
             data->mb = mb;

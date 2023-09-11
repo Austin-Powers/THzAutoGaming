@@ -263,6 +263,7 @@ concept SystemInterface = requires(
     TInterfaceType       systemInterface,
     TInterfaceType const cSystemInterface,
     std::uint32_t       &coordinate,
+    std::int16_t         steps,
     MouseButton    const mb,
     Key            const k,
     KeyboardLock   const l) {
@@ -280,6 +281,8 @@ concept SystemInterface = requires(
 
     {systemInterface.getCursorPosition(coordinate, coordinate)} noexcept -> std::same_as<bool>;
     {systemInterface.setCursorPosition(coordinate, coordinate)} noexcept -> std::same_as<bool>;
+
+    {systemInterface.turnMouseWheel(steps)} noexcept ->std::same_as<bool>;
 
     {systemInterface.down(mb)} noexcept -> std::same_as<bool>;
     {systemInterface.up(mb)} noexcept -> std::same_as<bool>;
