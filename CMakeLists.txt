@@ -48,6 +48,7 @@ endif()
 add_library(${PROJECT_NAME} STATIC
 	src/input/normalDeviationStrategy.cpp
 	src/input/parameters.cpp
+	src/input/windowsInterface.cpp
 	src/simulations/tileMatchingPuzzle.cpp
 
 	include/THzAutoGaming/input/common.hpp
@@ -55,6 +56,7 @@ add_library(${PROJECT_NAME} STATIC
 	include/THzAutoGaming/input/iDeviationStrategy.hpp
 	include/THzAutoGaming/input/normalDeviationStrategy.hpp
 	include/THzAutoGaming/input/parameters.hpp
+	include/THzAutoGaming/input/windowsInterface.hpp
 	include/THzAutoGaming/optimisation/evolution/algorithm.hpp
 	include/THzAutoGaming/simulations/tileMatchingPuzzle.hpp
 )

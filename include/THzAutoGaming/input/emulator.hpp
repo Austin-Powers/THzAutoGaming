@@ -224,6 +224,8 @@ public:
         up(button);
     }
 
+    // TODO THz add mouse scrolling
+
     /// @brief Presses the given mouse button down.
     ///
     /// @param button The button to press down.
@@ -463,6 +465,8 @@ private:
                         }
                     };
 
+                // TODO THz the speed values should be considered maximum, make sure one if the speeds is reduced
+                // otherwise we do not create a direct line from start to target
                 updateCoordinate(x, nextAction.xSpeed, nextAction.x);
                 updateCoordinate(y, nextAction.ySpeed, nextAction.y);
                 if (!_interface.setCursorPosition(x, y))
