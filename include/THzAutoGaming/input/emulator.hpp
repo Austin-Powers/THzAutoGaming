@@ -30,6 +30,16 @@ public:
         _worker.thread = std::thread([this]() { threadMethod(); });
     }
 
+    /// @brief Initializes a new Emulator using the given deviation strategy.
+    ///
+    /// @param strategy Pointer to the strategy that should be used by the emulator.
+    /// @param pInterface The interface to use for the inputs.
+    Emulator(IDeviationStrategy *const strategy, TSystemInterface pInterface = {}) noexcept
+        : _defaultStrategy{Parameters::Fast()}, _strategy{strategy}, _interface{pInterface}
+    {
+        _worker.thread = std::thread([this]() { threadMethod(); });
+    }
+
     /// @brief Finalizes this Emulator instance.
     ~Emulator() noexcept { _worker.shutdown(); }
 
@@ -223,8 +233,6 @@ public:
         moveTo(stopArea);
         up(button);
     }
-
-    // TODO THz add mouse scrolling
 
     /// @brief Presses the given mouse button down.
     ///
