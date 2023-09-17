@@ -11,8 +11,8 @@ std::optional<Parameters> Parameters::create(std::normal_distribution<> const pK
                                              std::normal_distribution<> const pButtonDownTime,
                                              std::normal_distribution<> const pButtonUpTime,
                                              std::normal_distribution<> const pCursorAccuracy,
-                                             std::normal_distribution<> const pCursorSpeedX,
-                                             std::normal_distribution<> const pCursorSpeedY) noexcept
+                                             std::normal_distribution<> const pCursorSpeed,
+                                             double const                     pHorizontalSpeedFactor) noexcept
 {
     auto const normalDistributionBaseCeck = [](std::normal_distribution<> const &toCeck) noexcept -> bool {
         auto const mean   = toCeck.mean();
@@ -21,7 +21,7 @@ std::optional<Parameters> Parameters::create(std::normal_distribution<> const pK
     };
     if (!normalDistributionBaseCeck(pKeyDownTime) || !normalDistributionBaseCeck(pKeyUpTime) ||
         !normalDistributionBaseCeck(pButtonDownTime) || !normalDistributionBaseCeck(pButtonUpTime) ||
-        !normalDistributionBaseCeck(pCursorSpeedX) || !normalDistributionBaseCeck(pCursorSpeedY))
+        !normalDistributionBaseCeck(pCursorSpeed))
     {
         return {};
     }
@@ -29,8 +29,17 @@ std::optional<Parameters> Parameters::create(std::normal_distribution<> const pK
     {
         return {};
     }
-    return Parameters{
-        pKeyDownTime, pKeyUpTime, pButtonDownTime, pButtonUpTime, pCursorAccuracy, pCursorSpeedX, pCursorSpeedY};
+    if ((pHorizontalSpeedFactor <= 0.0) || !std::isnormal(pHorizontalSpeedFactor))
+    {
+        return {};
+    }
+    return Parameters{pKeyDownTime,
+                      pKeyUpTime,
+                      pButtonDownTime,
+                      pButtonUpTime,
+                      pCursorAccuracy,
+                      pCursorSpeed,
+                      pHorizontalSpeedFactor};
 }
 
 Parameters Parameters::Human() noexcept
@@ -40,8 +49,8 @@ Parameters Parameters::Human() noexcept
                       std::normal_distribution<>{77.0, 14.0},
                       std::normal_distribution<>{76.0, 21.0},
                       std::normal_distribution<>{0.0, 0.2821},
-                      std::normal_distribution<>{492.65, 335.93},
-                      std::normal_distribution<>{272.98, 211.43}};
+                      std::normal_distribution<>{379.44, 187.39},
+                      1.8};
 }
 
 Parameters Parameters::Fast() noexcept
@@ -52,8 +61,8 @@ Parameters Parameters::Fast() noexcept
                       std::normal_distribution<>{50.0, 0.0001},
                       std::normal_distribution<>{50.0, 0.0001},
                       std::normal_distribution<>{0.0, 0.0001},
-                      std::normal_distribution<>{3840.0, 0.0001},
-                      std::normal_distribution<>{2160.0, 0.0001}};
+                      std::normal_distribution<>{2160.0, 0.0001},
+                      2.0};
 }
 
 Parameters::Parameters(std::normal_distribution<> const pKeyDownTime,
@@ -61,15 +70,15 @@ Parameters::Parameters(std::normal_distribution<> const pKeyDownTime,
                        std::normal_distribution<> const pButtonDownTime,
                        std::normal_distribution<> const pButtonUpTime,
                        std::normal_distribution<> const pCursorAccuracy,
-                       std::normal_distribution<> const pCursorSpeedX,
-                       std::normal_distribution<> const pCursorSpeedY) noexcept
+                       std::normal_distribution<> const pCursorSpeed,
+                       double const                     pHorizontalSpeedFactor) noexcept
     : _keyDownTime{pKeyDownTime},
       _keyUpTime{pKeyUpTime},
       _buttonDownTime{pButtonDownTime},
       _buttonUpTime{pButtonUpTime},
       _cursorAccuracy{pCursorAccuracy},
-      _cursorSpeedX{pCursorSpeedX},
-      _cursorSpeedY{pCursorSpeedY}
+      _cursorSpeed{pCursorSpeed},
+      _horizontalSpeedFactor{pHorizontalSpeedFactor}
 {}
 
 } // namespace Terrahertz::Input

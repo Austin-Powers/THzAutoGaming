@@ -18,16 +18,16 @@ public:
     /// @param pButtonDownTime The duration a mouse button is pressed.
     /// @param pButtonUpTime The duration between releasing a mouse button and pressing the next.
     /// @param pCursorAccuracy The standard deviation of clicks from the center of the target, mean has to be 0.0.
-    /// @param pCursorSpeedX The horizontal cursor speed [pxl/s].
-    /// @param pCursorSpeedY The vertical cursor speed [pxl/s].
+    /// @param pCursorSpeedX The vertical cursor speed [pxl/s].
+    /// @param pHorizontalSpeedFactor The factor to get from vertical to horizontal cursor speed.
     /// @return The parameter set, if given values are within the correct boundaries.
     static std::optional<Parameters> create(std::normal_distribution<> const pKeyDownTime,
                                             std::normal_distribution<> const pKeyUpTime,
                                             std::normal_distribution<> const pButtonDownTime,
                                             std::normal_distribution<> const pButtonUpTime,
                                             std::normal_distribution<> const pCursorAccuracy,
-                                            std::normal_distribution<> const pCursorSpeedX,
-                                            std::normal_distribution<> const pCursorSpeedY) noexcept;
+                                            std::normal_distribution<> const pCursorSpeed,
+                                            double const                     pHorizontalSpeedFactor) noexcept;
 
     /// @brief Returns parameters for the input emulator for a more human like input behavior.
     ///
@@ -64,15 +64,15 @@ public:
     /// @return The standard deviation of clicks from the center of the target.
     inline std::normal_distribution<> cursorAccuracy() const noexcept { return _cursorAccuracy; }
 
-    /// @brief Returns the horizontal cursor speed [pxl/s].
-    ///
-    /// @return The horizontal cursor speed [pxl/s].
-    inline std::normal_distribution<> cursorSpeedX() const noexcept { return _cursorSpeedX; }
-
     /// @brief Returns the vertical cursor speed [pxl/s].
     ///
     /// @return The vertical cursor speed [pxl/s].
-    inline std::normal_distribution<> cursorSpeedY() const noexcept { return _cursorSpeedY; }
+    inline std::normal_distribution<> cursorSpeed() const noexcept { return _cursorSpeed; }
+
+    /// @brief Returns the factor to get from vertical to horizontal cursor speed.
+    ///
+    /// @return The factor to get from vertical to horizontal cursor speed.
+    inline double horizontalSpeedFactor() const noexcept { return _horizontalSpeedFactor; }
 
 private:
     /// @brief Initializes a new set of parameters using the given values.
@@ -82,15 +82,15 @@ private:
     /// @param pButtonDownTime The duration a mouse button is pressed.
     /// @param pButtonUpTime The duration between releasing a mouse button and pressing the next.
     /// @param pCursorAccuracy The standard deviation of clicks from the center of the target.
-    /// @param pCursorSpeedX The horizontal cursor speed [pxl/s].
-    /// @param pCursorSpeedY The vertical cursor speed [pxl/s].
+    /// @param pCursorSpeedX The vertical cursor speed [pxl/s].
+    /// @param pHorizontalSpeedFactor The factor to get from vertical to horizontal cursor speed.
     Parameters(std::normal_distribution<> const pKeyDownTime,
                std::normal_distribution<> const pKeyUpTime,
                std::normal_distribution<> const pButtonDownTime,
                std::normal_distribution<> const pButtonUpTime,
                std::normal_distribution<> const pCursorAccuracy,
-               std::normal_distribution<> const pCursorSpeedX,
-               std::normal_distribution<> const pCursorSpeedY) noexcept;
+               std::normal_distribution<> const pCursorSpeed,
+               double const                     pHorizontalSpeedFactor) noexcept;
 
     /// @brief The duration a key is pressed.
     std::normal_distribution<> _keyDownTime;
@@ -107,11 +107,11 @@ private:
     /// @brief The standard deviation of clicks from the center of the target.
     std::normal_distribution<> _cursorAccuracy;
 
-    /// @brief The horizontal cursor speed [pxl/s].
-    std::normal_distribution<> _cursorSpeedX;
-
     /// @brief The vertical cursor speed [pxl/s].
-    std::normal_distribution<> _cursorSpeedY;
+    std::normal_distribution<> _cursorSpeed;
+
+    /// @brief The factor to get from vertical to horizontal cursor speed.
+    double _horizontalSpeedFactor;
 };
 
 } // namespace Terrahertz::Input

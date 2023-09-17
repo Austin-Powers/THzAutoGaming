@@ -124,8 +124,8 @@ struct Input_Emulator : public testing::Test
         EXPECT_EQ(expected.buttonDownTime(), actual.buttonDownTime());
         EXPECT_EQ(expected.buttonUpTime(), actual.buttonUpTime());
         EXPECT_EQ(expected.cursorAccuracy(), actual.cursorAccuracy());
-        EXPECT_EQ(expected.cursorSpeedX(), actual.cursorSpeedX());
-        EXPECT_EQ(expected.cursorSpeedY(), actual.cursorSpeedY());
+        EXPECT_EQ(expected.cursorSpeed(), actual.cursorSpeed());
+        EXPECT_EQ(expected.horizontalSpeedFactor(), actual.horizontalSpeedFactor());
     }
 };
 

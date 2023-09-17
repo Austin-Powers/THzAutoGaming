@@ -154,6 +154,7 @@ public:
     void sync() noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
+        // TODO add Sync command and use that to sync
 
         auto mouseQueueFinished    = _nextMouseAction;
         auto keyboardQueueFinished = _nextKeyboardAction;
@@ -197,9 +198,9 @@ public:
     void moveTo(Rectangle const &targetArea) noexcept
     {
         auto const target = _strategy->calculateTargetIn(targetArea);
-        auto const speedX = _strategy->calculateSpeedX();
-        auto const speedY = _strategy->calculateSpeedY();
-        addMouseAction(MouseAction::Type::Move, Ms{0U}, MouseButton::Left, target.x, target.y, speedX, speedY);
+        auto const speed  = _strategy->calculateSpeed();
+        auto const factor = _strategy->calculateHorizontalSpeedFactor();
+        addMouseAction(MouseAction::Type::Move, Ms{0U}, MouseButton::Left, target.x, target.y, speed, factor);
     }
 
     /// @brief Clicks with the given mouse button.
@@ -325,11 +326,11 @@ private:
         /// @brief The y coordinate for move actions.
         std::uint32_t y;
 
-        /// @brief The amount of pixels traveled on the x-axis over the interval stored in cooldown.
-        std::uint32_t xSpeed;
+        /// @brief The amount of pixels traveled vertically over the interval stored in cooldown.
+        double speed;
 
-        /// @brief The amount of pixels traveled on the y-axis over the interval stored in cooldown.
-        std::uint32_t ySpeed;
+        /// @brief The factor to get from vertical to horizontal cursor speed.
+        double factor;
     };
 
     /// @brief Data structure for a single keyboard related action performed by the emulator.
@@ -365,18 +366,18 @@ private:
     /// @param button The button of the action (optional).
     /// @param x The x coordinate for move actions (optional).
     /// @param y The y coordinate for move actions (optional).
-    /// @param xSpeed The xSpeed for move actions (optional).
-    /// @param ySpeed The ySpeed for move actions (optional).
+    /// @param speed The speed for move actions (optional).
+    /// @param factor The factor for move actions (optional).
     void addMouseAction(MouseAction::Type const type,
                         Ms const                cooldown,
                         MouseButton const       button = MouseButton::Left,
                         std::uint32_t const     x      = 0U,
                         std::uint32_t const     y      = 0U,
-                        std::uint32_t const     xSpeed = 0U,
-                        std::uint32_t const     ySpeed = 0U) noexcept
+                        double const            speed  = 1000.0,
+                        double const            factor = 1.0) noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
-        _mouseActions.emplace_back(type, cooldown, button, x, y, xSpeed, ySpeed);
+        _mouseActions.emplace_back(type, cooldown, button, x, y, speed, factor);
     }
 
     /// @brief Emplaces a new KeyboardAction instance at the back of the _keyboardActions queue.
@@ -460,32 +461,7 @@ private:
                 ++_errorCounter;
             }
             else
-            {
-                auto const updateCoordinate =
-                    [](std::uint32_t &i, std::uint32_t const speed, std::uint32_t const target) noexcept {
-                        if (i < target)
-                        {
-                            i = std::min(i + speed, target);
-                        }
-                        else
-                        {
-                            i = std::max(i - speed, target);
-                        }
-                    };
-
-                // TODO THz the speed values should be considered maximum, make sure one if the speeds is reduced
-                // otherwise we do not create a direct line from start to target
-                updateCoordinate(x, nextAction.xSpeed, nextAction.x);
-                updateCoordinate(y, nextAction.ySpeed, nextAction.y);
-                if (!_interface.setCursorPosition(x, y))
-                {
-                    ++_errorCounter;
-                }
-                else if ((x == nextAction.x) && (y == nextAction.y))
-                {
-                    _mouseActions.pop_front();
-                }
-            }
+            {}
             break;
         }
         case MouseAction::Type::Down:

@@ -26,10 +26,9 @@ TEST_F(Input_NormalDeviationStrategy, ParametersGivenAreStoredCorrectly)
     EXPECT_EQ(expected.buttonUpTime().stddev(), actual.buttonUpTime().stddev());
     EXPECT_EQ(expected.cursorAccuracy().mean(), actual.cursorAccuracy().mean());
     EXPECT_EQ(expected.cursorAccuracy().stddev(), actual.cursorAccuracy().stddev());
-    EXPECT_EQ(expected.cursorSpeedX().mean(), actual.cursorSpeedX().mean());
-    EXPECT_EQ(expected.cursorSpeedX().stddev(), actual.cursorSpeedX().stddev());
-    EXPECT_EQ(expected.cursorSpeedY().mean(), actual.cursorSpeedY().mean());
-    EXPECT_EQ(expected.cursorSpeedY().stddev(), actual.cursorSpeedY().stddev());
+    EXPECT_EQ(expected.cursorSpeed().mean(), actual.cursorSpeed().mean());
+    EXPECT_EQ(expected.cursorSpeed().stddev(), actual.cursorSpeed().stddev());
+    EXPECT_EQ(expected.horizontalSpeedFactor(), actual.horizontalSpeedFactor());
 }
 
 TEST_F(Input_NormalDeviationStrategy, CalculateKeyDownTime)
@@ -149,19 +148,19 @@ TEST_F(Input_NormalDeviationStrategy, CalculateTargetIn)
     EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
 }
 
-TEST_F(Input_NormalDeviationStrategy, CalculateSpeedX)
+TEST_F(Input_NormalDeviationStrategy, CalculateSpeed)
 {
-    auto const parameter = Input::Parameters::Human().cursorSpeedX();
+    auto const parameter = Input::Parameters::Human().cursorSpeed();
     auto const maxValue  = static_cast<std::uint32_t>(parameter.mean() + (3.0 * parameter.stddev()));
 
-    auto lastValue = sut.calculateSpeedX();
+    auto lastValue = sut.calculateSpeed();
     EXPECT_GT(lastValue, 0U);
     EXPECT_LT(lastValue, maxValue);
 
     auto lastAndCurrentAreEqualCounter = 0U;
     for (auto i = 0U; i < 64U; ++i)
     {
-        auto const currentValue = sut.calculateSpeedX();
+        auto const currentValue = sut.calculateSpeed();
         EXPECT_GT(currentValue, 0U);
         EXPECT_LT(currentValue, maxValue);
         if (currentValue == lastValue)
@@ -173,28 +172,9 @@ TEST_F(Input_NormalDeviationStrategy, CalculateSpeedX)
     EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
 }
 
-TEST_F(Input_NormalDeviationStrategy, CalculateSpeedY)
+TEST_F(Input_NormalDeviationStrategy, CalculateHorizontalSpeedFactor)
 {
-    auto const parameter = Input::Parameters::Human().cursorSpeedY();
-    auto const maxValue  = static_cast<std::uint32_t>(parameter.mean() + (3.0 * parameter.stddev()));
-
-    auto lastValue = sut.calculateSpeedY();
-    EXPECT_GT(lastValue, 0U);
-    EXPECT_LT(lastValue, maxValue);
-
-    auto lastAndCurrentAreEqualCounter = 0U;
-    for (auto i = 0U; i < 64U; ++i)
-    {
-        auto const currentValue = sut.calculateSpeedY();
-        EXPECT_GT(currentValue, 0U);
-        EXPECT_LT(currentValue, maxValue);
-        if (currentValue == lastValue)
-        {
-            ++lastAndCurrentAreEqualCounter;
-        }
-        lastValue = currentValue;
-    }
-    EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
+    EXPECT_EQ(Input::Parameters::Human().horizontalSpeedFactor(), sut.calculateHorizontalSpeedFactor());
 }
 
 } // namespace Terrahertz::UnitTests

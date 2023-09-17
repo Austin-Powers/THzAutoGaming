@@ -37,14 +37,14 @@ Point NormalDeviationStrategy::calculateTargetIn(Rectangle const &area) noexcept
     return target;
 }
 
-std::uint32_t NormalDeviationStrategy::calculateSpeedX() noexcept
+std::uint32_t NormalDeviationStrategy::calculateSpeed() noexcept
 {
-    return calculateValueUsing(_parameters.cursorSpeedX());
+    return calculateValueUsing(_parameters.cursorSpeed());
 }
 
-std::uint32_t NormalDeviationStrategy::calculateSpeedY() noexcept
+double NormalDeviationStrategy::calculateHorizontalSpeedFactor() noexcept
 {
-    return calculateValueUsing(_parameters.cursorSpeedY());
+    return _parameters.horizontalSpeedFactor();
 }
 
 std::uint32_t NormalDeviationStrategy::calculateValueUsing(std::normal_distribution<> const &distribution) noexcept

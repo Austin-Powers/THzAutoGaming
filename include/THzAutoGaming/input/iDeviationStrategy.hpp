@@ -45,15 +45,15 @@ public:
     /// @return The point representing the target.
     [[nodiscard]] virtual Point calculateTargetIn(Rectangle const &area) noexcept = 0;
 
-    /// @brief Calculates the speed of the cursor on the x coordinate [pxl/s].
+    /// @brief Calculates the vertical cursor speed [pxl/s].
     ///
-    /// @return The speed of the cursor on the x coordinate [pxl/s].
-    [[nodiscard]] virtual std::uint32_t calculateSpeedX() noexcept = 0;
+    /// @return The vertical cursor speed [pxl/s].
+    [[nodiscard]] virtual std::uint32_t calculateSpeed() noexcept = 0;
 
-    /// @brief Calculates the speed of the cursor on the y coordinate [pxl/s].
+    /// @brief Calculates the factor to get from vertical to horizontal cursor speed.
     ///
-    /// @return The speed of the cursor on the y coordinate [pxl/s].
-    [[nodiscard]] virtual std::uint32_t calculateSpeedY() noexcept = 0;
+    /// @return The factor to get from vertical to horizontal cursor speed.
+    [[nodiscard]] virtual double calculateHorizontalSpeedFactor() noexcept = 0;
 };
 
 } // namespace Terrahertz::Input

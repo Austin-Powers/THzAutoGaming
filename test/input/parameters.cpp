@@ -21,10 +21,9 @@ struct Input_Parameters : public testing::Test
     double buttonUpTimeStdDev{20.0};
     double cursorAccuracyMean{0.0};
     double cursorAccuracyStdDev{0.4};
-    double cursorSpeedXMean{222.2};
-    double cursorSpeedXStdDev{22.5};
-    double cursorSpeedYMean{120.5};
-    double cursorSpeedYStdDev{10.6};
+    double cursorSpeedMean{120.5};
+    double cursorSpeedStdDev{10.6};
+    double horizontalSpeedFactor{1.23};
 
     void testCreationWithInvalidValue(double &parameter, double const value) noexcept
     {
@@ -35,8 +34,8 @@ struct Input_Parameters : public testing::Test
                                                normal{buttonDownTimeMean, buttonDownTimeStdDev},
                                                normal{buttonUpTimeMean, buttonUpTimeStdDev},
                                                normal{cursorAccuracyMean, cursorAccuracyStdDev},
-                                               normal{cursorSpeedXMean, cursorSpeedXStdDev},
-                                               normal{cursorSpeedYMean, cursorSpeedYStdDev})
+                                               normal{cursorSpeedMean, cursorSpeedStdDev},
+                                               horizontalSpeedFactor)
                          .has_value());
         parameter = temp;
     }
@@ -57,8 +56,10 @@ TEST_F(Input_Parameters, CreationReturnsEmptyOptionalIfGivenInvalidParameters)
     testCreationWithInvalidValues(buttonUpTimeMean, -1.0);
     testCreationWithInvalidValues(cursorAccuracyMean, -1.0);
     testCreationWithInvalidValue(cursorAccuracyMean, 1.0);
-    testCreationWithInvalidValues(cursorSpeedXMean, -1.0);
-    testCreationWithInvalidValues(cursorSpeedYMean, -1.0);
+    testCreationWithInvalidValues(cursorSpeedMean, 0.0);
+    testCreationWithInvalidValues(cursorSpeedMean, -1.0);
+    testCreationWithInvalidValues(horizontalSpeedFactor, 0.0);
+    testCreationWithInvalidValues(horizontalSpeedFactor, -1.0);
 }
 
 TEST_F(Input_Parameters, DataStoredCorrectly)
@@ -68,8 +69,8 @@ TEST_F(Input_Parameters, DataStoredCorrectly)
                                                normal{buttonDownTimeMean, buttonDownTimeStdDev},
                                                normal{buttonUpTimeMean, buttonUpTimeStdDev},
                                                normal{cursorAccuracyMean, cursorAccuracyStdDev},
-                                               normal{cursorSpeedXMean, cursorSpeedXStdDev},
-                                               normal{cursorSpeedYMean, cursorSpeedYStdDev})
+                                               normal{cursorSpeedMean, cursorSpeedStdDev},
+                                               horizontalSpeedFactor)
                          .value();
 
     EXPECT_EQ(sut.keyDownTime().mean(), keyDownTimeMean);
@@ -82,10 +83,9 @@ TEST_F(Input_Parameters, DataStoredCorrectly)
     EXPECT_EQ(sut.buttonUpTime().stddev(), buttonUpTimeStdDev);
     EXPECT_EQ(sut.cursorAccuracy().mean(), cursorAccuracyMean);
     EXPECT_EQ(sut.cursorAccuracy().stddev(), cursorAccuracyStdDev);
-    EXPECT_EQ(sut.cursorSpeedX().mean(), cursorSpeedXMean);
-    EXPECT_EQ(sut.cursorSpeedX().stddev(), cursorSpeedXStdDev);
-    EXPECT_EQ(sut.cursorSpeedY().mean(), cursorSpeedYMean);
-    EXPECT_EQ(sut.cursorSpeedY().stddev(), cursorSpeedYStdDev);
+    EXPECT_EQ(sut.cursorSpeed().mean(), cursorSpeedMean);
+    EXPECT_EQ(sut.cursorSpeed().stddev(), cursorSpeedStdDev);
+    EXPECT_EQ(sut.horizontalSpeedFactor(), horizontalSpeedFactor);
 }
 
 TEST_F(Input_Parameters, PresetsValid)
@@ -96,8 +96,8 @@ TEST_F(Input_Parameters, PresetsValid)
                                               parameters.buttonDownTime(),
                                               parameters.buttonUpTime(),
                                               parameters.cursorAccuracy(),
-                                              parameters.cursorSpeedX(),
-                                              parameters.cursorSpeedY())
+                                              parameters.cursorSpeed(),
+                                              parameters.horizontalSpeedFactor())
                         .has_value());
     };
     checkParameters(Input::Parameters::Human());
