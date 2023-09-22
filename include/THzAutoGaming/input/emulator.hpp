@@ -461,7 +461,12 @@ private:
                 ++_errorCounter;
             }
             else
-            {}
+            {
+                Point currentPosition{};
+                // calculate direction
+                // calculate distance to target
+                //
+            }
             break;
         }
         case MouseAction::Type::Down:
