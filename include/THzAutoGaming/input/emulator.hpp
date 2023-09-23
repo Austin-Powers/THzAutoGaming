@@ -197,10 +197,11 @@ public:
     /// @param targetArea The target area on the screen.
     void moveTo(Rectangle const &targetArea) noexcept
     {
+        auto const rate   = 25U;
         auto const target = _strategy->calculateTargetIn(targetArea);
-        auto const speed  = _strategy->calculateSpeed();
-        auto const factor = _strategy->calculateHorizontalSpeedFactor();
-        addMouseAction(MouseAction::Type::Move, Ms{0U}, MouseButton::Left, target.x, target.y, speed, factor);
+        auto const speed  = _strategy->calculateSpeed() / rate;
+        auto const factor = _strategy->calculateHorizontalSpeedFactor() - 1.0;
+        addMouseAction(MouseAction::Type::Move, Ms{1000U / rate}, MouseButton::Left, target.x, target.y, speed, factor);
     }
 
     /// @brief Clicks with the given mouse button.
@@ -313,8 +314,8 @@ private:
         /// @brief The type of the action.
         Type type;
 
-        /// @brief The time to wait after this action before the next one is executed or the interval for the move
-        /// command.
+        /// @brief The time to wait after this action before the next one is executed or the update interval for the
+        /// move command.
         Ms cooldown;
 
         /// @brief The button of the action.
@@ -366,7 +367,7 @@ private:
     /// @param button The button of the action (optional).
     /// @param x The x coordinate for move actions (optional).
     /// @param y The y coordinate for move actions (optional).
-    /// @param speed The speed for move actions (optional).
+    /// @param speed The speed for move actions [pxl/cooldown] (optional).
     /// @param factor The factor for move actions (optional).
     void addMouseAction(MouseAction::Type const type,
                         Ms const                cooldown,
@@ -374,7 +375,7 @@ private:
                         std::uint32_t const     x      = 0U,
                         std::uint32_t const     y      = 0U,
                         double const            speed  = 1000.0,
-                        double const            factor = 1.0) noexcept
+                        double const            factor = 0.0) noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
         _mouseActions.emplace_back(type, cooldown, button, x, y, speed, factor);
@@ -449,6 +450,10 @@ private:
     /// @brief Executes the next mouse action and removes it from the queue.
     void performNextMouseAction() noexcept
     {
+        auto const toPoint = [](std::uint32_t const x, std::uint32_t const y) noexcept -> Point {
+            return Point{static_cast<std::int32_t>(x), static_cast<std::int32_t>(y)};
+        };
+
         auto const nextAction = _mouseActions.front();
         _nextMouseAction += nextAction.cooldown;
         switch (nextAction.type)
@@ -462,10 +467,37 @@ private:
             }
             else
             {
-                Point currentPosition{};
-                // calculate direction
-                // calculate distance to target
-                //
+                auto const currentPosition = toPoint(x, y);
+                auto const targetPosition  = toPoint(nextAction.x, nextAction.y);
+
+                auto const dir    = currentPosition.direction(targetPosition);
+                auto const dist   = currentPosition.distance(targetPosition);
+                auto const speed  = nextAction.speed * (1 + (nextAction.factor * std::cos(dir)));
+                auto const speedX = speed * std::sin(dir);
+                auto const speedY = speed * std::cos(dir);
+
+                auto finished = false;
+                if (dist < speed)
+                {
+                    // snap to target if we are almost there
+                    x        = targetPosition.x;
+                    y        = targetPosition.y;
+                    finished = true;
+                }
+                else
+                {
+                    x = static_cast<std::uint32_t>(x + speedX);
+                    y = static_cast<std::uint32_t>(y + speedY);
+                }
+
+                if (!_interface.setCursorPosition(x, y))
+                {
+                    ++_errorCounter;
+                }
+                else if (finished)
+                {
+                    _mouseActions.pop_front();
+                }
             }
             break;
         }
