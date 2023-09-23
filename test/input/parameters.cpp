@@ -11,31 +11,37 @@ struct Input_Parameters : public testing::Test
 {
     using normal = std::normal_distribution<>;
 
-    double keyDownTimeMean{365.0};
-    double keyDownTimeStdDev{122.0};
-    double keyUpTimeMean{675.0};
-    double keyUpTimeStdDev{178.0};
-    double buttonDownTimeMean{221.0};
-    double buttonDownTimeStdDev{54.0};
-    double buttonUpTimeMean{675.0};
-    double buttonUpTimeStdDev{20.0};
-    double cursorAccuracyMean{0.0};
-    double cursorAccuracyStdDev{0.4};
-    double cursorSpeedMean{120.5};
-    double cursorSpeedStdDev{10.6};
-    double horizontalSpeedFactor{1.23};
+    double        keyDownTimeMean{365.0};
+    double        keyDownTimeStdDev{122.0};
+    double        keyUpTimeMean{675.0};
+    double        keyUpTimeStdDev{178.0};
+    double        buttonDownTimeMean{221.0};
+    double        buttonDownTimeStdDev{54.0};
+    double        buttonUpTimeMean{675.0};
+    double        buttonUpTimeStdDev{20.0};
+    double        cursorAccuracyMean{0.0};
+    double        cursorAccuracyStdDev{0.4};
+    double        cursorSpeedMean{120.5};
+    double        cursorSpeedStdDev{10.6};
+    double        horizontalSpeedFactor{1.23};
+    std::uint16_t wheelStepsPerPush{46U};
+    double        wheelResetTimeMean{128.16};
+    double        wheelResetTimeStdDev{28.16};
 
-    void testCreationWithInvalidValue(double &parameter, double const value) noexcept
+    template <typename T>
+    void testCreationWithInvalidValue(T &parameter, T const value) noexcept
     {
-        double const temp = parameter;
-        parameter         = value;
+        T const temp = parameter;
+        parameter    = value;
         EXPECT_FALSE(Input::Parameters::create(normal{keyDownTimeMean, keyDownTimeStdDev},
                                                normal{keyUpTimeMean, keyUpTimeStdDev},
                                                normal{buttonDownTimeMean, buttonDownTimeStdDev},
                                                normal{buttonUpTimeMean, buttonUpTimeStdDev},
                                                normal{cursorAccuracyMean, cursorAccuracyStdDev},
                                                normal{cursorSpeedMean, cursorSpeedStdDev},
-                                               horizontalSpeedFactor)
+                                               horizontalSpeedFactor,
+                                               wheelStepsPerPush,
+                                               normal{wheelResetTimeMean, wheelResetTimeStdDev})
                          .has_value());
         parameter = temp;
     }
@@ -60,6 +66,8 @@ TEST_F(Input_Parameters, CreationReturnsEmptyOptionalIfGivenInvalidParameters)
     testCreationWithInvalidValues(cursorSpeedMean, -1.0);
     testCreationWithInvalidValues(horizontalSpeedFactor, 0.0);
     testCreationWithInvalidValues(horizontalSpeedFactor, -1.0);
+    testCreationWithInvalidValues(wheelResetTimeMean, -1.0);
+    testCreationWithInvalidValue<std::uint16_t>(wheelStepsPerPush, 0U);
 }
 
 TEST_F(Input_Parameters, DataStoredCorrectly)
@@ -70,7 +78,9 @@ TEST_F(Input_Parameters, DataStoredCorrectly)
                                                normal{buttonUpTimeMean, buttonUpTimeStdDev},
                                                normal{cursorAccuracyMean, cursorAccuracyStdDev},
                                                normal{cursorSpeedMean, cursorSpeedStdDev},
-                                               horizontalSpeedFactor)
+                                               horizontalSpeedFactor,
+                                               wheelStepsPerPush,
+                                               normal{wheelResetTimeMean, wheelResetTimeStdDev})
                          .value();
 
     EXPECT_EQ(sut.keyDownTime().mean(), keyDownTimeMean);
@@ -86,6 +96,9 @@ TEST_F(Input_Parameters, DataStoredCorrectly)
     EXPECT_EQ(sut.cursorSpeed().mean(), cursorSpeedMean);
     EXPECT_EQ(sut.cursorSpeed().stddev(), cursorSpeedStdDev);
     EXPECT_EQ(sut.horizontalSpeedFactor(), horizontalSpeedFactor);
+    EXPECT_EQ(sut.wheelStepsPerPush(), wheelStepsPerPush);
+    EXPECT_EQ(sut.wheelResetTime().mean(), wheelResetTimeMean);
+    EXPECT_EQ(sut.wheelResetTime().stddev(), wheelResetTimeStdDev);
 }
 
 TEST_F(Input_Parameters, PresetsValid)
@@ -97,7 +110,9 @@ TEST_F(Input_Parameters, PresetsValid)
                                               parameters.buttonUpTime(),
                                               parameters.cursorAccuracy(),
                                               parameters.cursorSpeed(),
-                                              parameters.horizontalSpeedFactor())
+                                              parameters.horizontalSpeedFactor(),
+                                              parameters.wheelStepsPerPush(),
+                                              parameters.wheelResetTime())
                         .has_value());
     };
     checkParameters(Input::Parameters::Human());

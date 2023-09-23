@@ -12,7 +12,9 @@ std::optional<Parameters> Parameters::create(std::normal_distribution<> const pK
                                              std::normal_distribution<> const pButtonUpTime,
                                              std::normal_distribution<> const pCursorAccuracy,
                                              std::normal_distribution<> const pCursorSpeed,
-                                             double const                     pHorizontalSpeedFactor) noexcept
+                                             double const                     pHorizontalSpeedFactor,
+                                             std::uint16_t const              pWheelStepsPerPush,
+                                             std::normal_distribution<> const pWheelResetTime) noexcept
 {
     auto const normalDistributionBaseCeck = [](std::normal_distribution<> const &toCeck) noexcept -> bool {
         auto const mean   = toCeck.mean();
@@ -21,7 +23,7 @@ std::optional<Parameters> Parameters::create(std::normal_distribution<> const pK
     };
     if (!normalDistributionBaseCeck(pKeyDownTime) || !normalDistributionBaseCeck(pKeyUpTime) ||
         !normalDistributionBaseCeck(pButtonDownTime) || !normalDistributionBaseCeck(pButtonUpTime) ||
-        !normalDistributionBaseCeck(pCursorSpeed))
+        !normalDistributionBaseCeck(pCursorSpeed) || !normalDistributionBaseCeck(pWheelResetTime))
     {
         return {};
     }
@@ -33,13 +35,19 @@ std::optional<Parameters> Parameters::create(std::normal_distribution<> const pK
     {
         return {};
     }
+    if (pWheelStepsPerPush == 0U)
+    {
+        return {};
+    }
     return Parameters{pKeyDownTime,
                       pKeyUpTime,
                       pButtonDownTime,
                       pButtonUpTime,
                       pCursorAccuracy,
                       pCursorSpeed,
-                      pHorizontalSpeedFactor};
+                      pHorizontalSpeedFactor,
+                      pWheelStepsPerPush,
+                      pWheelResetTime};
 }
 
 Parameters Parameters::Human() noexcept
@@ -50,7 +58,9 @@ Parameters Parameters::Human() noexcept
                       std::normal_distribution<>{76.0, 21.0},
                       std::normal_distribution<>{0.0, 0.2821},
                       std::normal_distribution<>{379.44, 187.39},
-                      1.8};
+                      1.8,
+                      28U,
+                      std::normal_distribution<>{400.0, 100.0}};
 }
 
 Parameters Parameters::Fast() noexcept
@@ -62,7 +72,9 @@ Parameters Parameters::Fast() noexcept
                       std::normal_distribution<>{50.0, 0.0001},
                       std::normal_distribution<>{0.0, 0.0001},
                       std::normal_distribution<>{2160.0, 0.0001},
-                      2.0};
+                      2.0,
+                      100U,
+                      std::normal_distribution<>{50.0, 0.0001}};
 }
 
 Parameters::Parameters(std::normal_distribution<> const pKeyDownTime,
@@ -71,14 +83,18 @@ Parameters::Parameters(std::normal_distribution<> const pKeyDownTime,
                        std::normal_distribution<> const pButtonUpTime,
                        std::normal_distribution<> const pCursorAccuracy,
                        std::normal_distribution<> const pCursorSpeed,
-                       double const                     pHorizontalSpeedFactor) noexcept
+                       double const                     pHorizontalSpeedFactor,
+                       std::uint16_t const              pWheelStepsPerPush,
+                       std::normal_distribution<> const pWheelResetTime) noexcept
     : _keyDownTime{pKeyDownTime},
       _keyUpTime{pKeyUpTime},
       _buttonDownTime{pButtonDownTime},
       _buttonUpTime{pButtonUpTime},
       _cursorAccuracy{pCursorAccuracy},
       _cursorSpeed{pCursorSpeed},
-      _horizontalSpeedFactor{pHorizontalSpeedFactor}
+      _horizontalSpeedFactor{pHorizontalSpeedFactor},
+      _wheelStepsPerPush{pWheelStepsPerPush},
+      _wheelResetTime{pWheelResetTime}
 {}
 
 } // namespace Terrahertz::Input
