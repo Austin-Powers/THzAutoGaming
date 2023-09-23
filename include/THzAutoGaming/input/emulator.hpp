@@ -154,42 +154,8 @@ public:
     void sync() noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
-        // TODO add Sync command and use that to sync
-
-        auto mouseQueueFinished    = _nextMouseAction;
-        auto keyboardQueueFinished = _nextKeyboardAction;
-        for (auto const &mouseAction : _mouseActions)
-        {
-            mouseQueueFinished += mouseAction.cooldown;
-        }
-        for (auto const &keyboardAction : _keyboardActions)
-        {
-            keyboardQueueFinished += keyboardAction.cooldown;
-        }
-
-        if (!_mouseActions.empty() && !_keyboardActions.empty())
-        {
-            if (mouseQueueFinished > keyboardQueueFinished)
-            {
-                auto const diff = mouseQueueFinished - keyboardQueueFinished;
-                _keyboardActions.emplace_back(KeyboardAction::Type::None, Ms{diff}, Key::Return);
-            }
-            else
-            {
-                auto const diff = keyboardQueueFinished - mouseQueueFinished;
-                _mouseActions.emplace_back(MouseAction::Type::None, Ms{diff}, MouseButton::Left, 0U, 0U, 10U, 10U);
-            }
-        }
-        else if (_mouseActions.empty())
-        {
-            _nextMouseAction = keyboardQueueFinished;
-            _mouseActions.emplace_back(MouseAction::Type::None, 0U, MouseButton::Left, 0U, 0U, 10U, 10U);
-        }
-        else if (_keyboardActions.empty())
-        {
-            _nextKeyboardAction = mouseQueueFinished;
-            _keyboardActions.emplace_back(KeyboardAction::Type::None, 0U, Key::Return);
-        }
+        _mouseActions.emplace_back(MouseAction::Type::Sync, Ms{0U}, MouseButton::Left, 0U, 0U, 0.0, 0.0);
+        _keyboardActions.emplace_back(KeyboardAction::Type::Sync, Ms{0U}, Key::Return);
     }
 
     /// @brief Adds a move command to the mouse queue.
@@ -308,7 +274,10 @@ private:
             Down,
 
             /// @brief Moves the cursor to a given position.
-            Move
+            Move,
+
+            /// @brief Sync up with the keyboard.
+            Sync
         };
 
         /// @brief The type of the action.
@@ -347,7 +316,10 @@ private:
             Up,
 
             /// @brief Push key or button.
-            Down
+            Down,
+
+            /// @brief Sync up with the mouse.
+            Sync
         };
 
         /// @brief The type of the action.
@@ -407,6 +379,12 @@ private:
             // we need to check again as queues might have been cleared in the mean time
             if (!_mouseActions.empty() && !_keyboardActions.empty())
             {
+                if ((_mouseActions[0U].type == MouseAction::Type::Sync) ||
+                    (_keyboardActions[0U].type == KeyboardAction::Type::Sync))
+                {
+                    _mouseActions.pop_front();
+                    _keyboardActions.pop_front();
+                }
                 if (_nextMouseAction < _nextKeyboardAction)
                 {
                     performNextMouseAction();
@@ -436,11 +414,11 @@ private:
         {
             return Clock::now() + std::chrono::milliseconds{1000U};
         }
-        if (_mouseActions.empty())
+        if (_mouseActions.empty() || (_mouseActions[0U].type == MouseAction::Type::Sync))
         {
             return _nextKeyboardAction;
         }
-        if (_keyboardActions.empty())
+        if (_keyboardActions.empty() || (_keyboardActions[0U].type == KeyboardAction::Type::Sync))
         {
             return _nextMouseAction;
         }
