@@ -23,15 +23,15 @@ public:
     /// @param pWheelStepsPerPush The steps the mouse wheel does per of the finger.
     /// @param pWheelResetTime The time it takes for the finger to reposition for the next push [ms].
     /// @return The parameter set, if given values are within the correct boundaries.
-    static std::optional<Parameters> create(std::normal_distribution<> const pKeyDownTime,
-                                            std::normal_distribution<> const pKeyUpTime,
-                                            std::normal_distribution<> const pButtonDownTime,
-                                            std::normal_distribution<> const pButtonUpTime,
-                                            std::normal_distribution<> const pCursorAccuracy,
-                                            std::normal_distribution<> const pCursorSpeed,
-                                            double const                     pHorizontalSpeedFactor,
-                                            std::uint16_t const              pWheelStepsPerPush,
-                                            std::normal_distribution<> const pWheelResetTime) noexcept;
+    [[nodiscard]] static std::optional<Parameters> create(std::normal_distribution<> const pKeyDownTime,
+                                                          std::normal_distribution<> const pKeyUpTime,
+                                                          std::normal_distribution<> const pButtonDownTime,
+                                                          std::normal_distribution<> const pButtonUpTime,
+                                                          std::normal_distribution<> const pCursorAccuracy,
+                                                          std::normal_distribution<> const pCursorSpeed,
+                                                          double const                     pHorizontalSpeedFactor,
+                                                          std::uint16_t const              pWheelStepsPerPush,
+                                                          std::normal_distribution<> const pWheelResetTime) noexcept;
 
     /// @brief Returns parameters for the input emulator for a more human like input behavior.
     ///
@@ -46,47 +46,47 @@ public:
     /// @brief Returns the duration a key is pressed [ms].
     ///
     /// @return The duration a key is pressed [ms].
-    inline std::normal_distribution<> keyDownTime() const noexcept { return _keyDownTime; }
+    [[nodiscard]] inline std::normal_distribution<> keyDownTime() const noexcept { return _keyDownTime; }
 
     /// @brief Returns the duration between releasing a key and pressing the next [ms].
     ///
     /// @return The duration between releasing a key and pressing the next [ms].
-    inline std::normal_distribution<> keyUpTime() const noexcept { return _keyUpTime; }
+    [[nodiscard]] inline std::normal_distribution<> keyUpTime() const noexcept { return _keyUpTime; }
 
     /// @brief Returns the duration a mouse button is pressed [ms].
     ///
     /// @return The duration a mouse button is pressed [ms].
-    inline std::normal_distribution<> buttonDownTime() const noexcept { return _buttonDownTime; }
+    [[nodiscard]] inline std::normal_distribution<> buttonDownTime() const noexcept { return _buttonDownTime; }
 
     /// @brief Returns the duration between releasing a mouse button and pressing the next [ms].
     ///
     /// @return The duration between releasing a mouse button and pressing the next [ms].
-    inline std::normal_distribution<> buttonUpTime() const noexcept { return _buttonUpTime; }
+    [[nodiscard]] inline std::normal_distribution<> buttonUpTime() const noexcept { return _buttonUpTime; }
 
     /// @brief Returns the standard deviation of clicks from the center of the target.
     ///
     /// @return The standard deviation of clicks from the center of the target.
-    inline std::normal_distribution<> cursorAccuracy() const noexcept { return _cursorAccuracy; }
+    [[nodiscard]] inline std::normal_distribution<> cursorAccuracy() const noexcept { return _cursorAccuracy; }
 
     /// @brief Returns the vertical cursor speed [pxl/s].
     ///
     /// @return The vertical cursor speed [pxl/s].
-    inline std::normal_distribution<> cursorSpeed() const noexcept { return _cursorSpeed; }
+    [[nodiscard]] inline std::normal_distribution<> cursorSpeed() const noexcept { return _cursorSpeed; }
 
     /// @brief Returns the factor to get from vertical to horizontal cursor speed.
     ///
     /// @return The factor to get from vertical to horizontal cursor speed.
-    inline double horizontalSpeedFactor() const noexcept { return _horizontalSpeedFactor; }
+    [[nodiscard]] inline double horizontalSpeedFactor() const noexcept { return _horizontalSpeedFactor; }
 
     /// @brief Returns the steps the mouse wheel does per of the finger.
     ///
     /// @return The steps the mouse wheel does per of the finger.
-    inline std::uint16_t wheelStepsPerPush() const noexcept { return _wheelStepsPerPush; }
+    [[nodiscard]] inline std::uint16_t wheelStepsPerPush() const noexcept { return _wheelStepsPerPush; }
 
     /// @brief Return the time it takes for the finger to reposition for the next push [ms].
     ///
     /// @return The time it takes for the finger to reposition for the next push [ms].
-    inline std::normal_distribution<> wheelResetTime() const noexcept { return _wheelResetTime; }
+    [[nodiscard]] inline std::normal_distribution<> wheelResetTime() const noexcept { return _wheelResetTime; }
 
 private:
     /// @brief Initializes a new set of parameters using the given values.

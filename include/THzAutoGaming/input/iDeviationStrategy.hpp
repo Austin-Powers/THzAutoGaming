@@ -54,6 +54,16 @@ public:
     ///
     /// @return The factor to get from vertical to horizontal cursor speed.
     [[nodiscard]] virtual double calculateHorizontalSpeedFactor() noexcept = 0;
+
+    /// @brief Calculates the next amount of steps done by the wheel.
+    ///
+    /// @return The next amount of steps done by the wheel.
+    [[nodiscard]] virtual std::uint16_t calculateWheelSteps() noexcept = 0;
+
+    /// @brief Calculates the next reset interval for the mouse wheel.
+    ///
+    /// @return The next interval between to mousewheel turns.
+    [[nodiscard]] virtual std::chrono::milliseconds calculateWheelResetTime() noexcept = 0;
 };
 
 } // namespace Terrahertz::Input

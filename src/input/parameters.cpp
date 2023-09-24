@@ -60,7 +60,7 @@ Parameters Parameters::Human() noexcept
                       std::normal_distribution<>{379.44, 187.39},
                       1.8,
                       28U,
-                      std::normal_distribution<>{400.0, 100.0}};
+                      std::normal_distribution<>{400.0, 50.0}};
 }
 
 Parameters Parameters::Fast() noexcept

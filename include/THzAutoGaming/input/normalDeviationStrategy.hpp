@@ -43,6 +43,12 @@ public:
     /// @copydoc IDeviationStrategy::calculateHorizontalSpeedFactor
     [[nodiscard]] double calculateHorizontalSpeedFactor() noexcept override;
 
+    /// @copydoc IDeviationStrategy::calculateWheelSteps
+    [[nodiscard]] std::uint16_t calculateWheelSteps() noexcept override;
+
+    /// @copydoc IDeviationStrategy::calculateWheelResetTime
+    [[nodiscard]] std::chrono::milliseconds calculateWheelResetTime() noexcept override;
+
 private:
     /// @brief Calculates the next value for the given distribution.
     ///

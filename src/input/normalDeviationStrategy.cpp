@@ -47,6 +47,13 @@ double NormalDeviationStrategy::calculateHorizontalSpeedFactor() noexcept
     return _parameters.horizontalSpeedFactor();
 }
 
+std::uint16_t NormalDeviationStrategy::calculateWheelSteps() noexcept { return _parameters.wheelStepsPerPush(); }
+
+std::chrono::milliseconds NormalDeviationStrategy::calculateWheelResetTime() noexcept
+{
+    return std::chrono::milliseconds{calculateValueUsing(_parameters.wheelResetTime())};
+}
+
 std::uint32_t NormalDeviationStrategy::calculateValueUsing(std::normal_distribution<> const &distribution) noexcept
 {
     auto const maxValue = distribution.mean() + (3.0 * distribution.stddev());
