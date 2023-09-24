@@ -218,6 +218,26 @@ public:
         addMouseAction(MouseAction::Type::Up, _strategy->calculateButtonUpTime(), button);
     }
 
+    /// @brief Turns the mouse wheel.
+    ///
+    /// @param steps The number of steps to turn, positive is scroll up.
+    void turnMouseWheel(std::int16_t steps) noexcept
+    {
+        auto const msPerS      = 1000;
+        auto const minInterval = 20;
+
+        while (steps != 0)
+        {
+            auto const speed            = _strategy->calculateWheelSpeed();
+            auto const cooldown         = Ms{std::max(msPerS / speed, minInterval)};
+            auto const pushCooldown     = _strategy->calculateWheelResetTime() - cooldown;
+            auto const chunk            = _strategy->calculateWheelSteps(steps);
+            auto const stepsPerInterval = cooldown.count() == minInterval ? speed / (msPerS / minInterval) : 1;
+            addMouseAction(MouseAction::Type::Turn, cooldown, pushCooldown, chunk, stepsPerInterval);
+            steps -= chunk;
+        }
+    }
+
     /// @brief Presses the given key down.
     ///
     /// @param key The key to press down.
@@ -312,11 +332,14 @@ private:
 
             struct
             {
-                /// @brief The time between two steps of the mouse wheel.
-                Ms stepCooldown;
+                /// @brief The additional cooldown after the current push has been finished.
+                Ms pushCooldown;
 
                 /// @brief The steps left to do, positive or negative depending on the direction.
-                std::int16_t steps;
+                std::int16_t stepsLeft;
+
+                /// @brief The steps done per cool%own interval.
+                std::int16_t stepsPerInterval;
             };
         };
     };
@@ -397,20 +420,23 @@ private:
     ///
     /// @param type The type of the action.
     /// @param cooldown The cooldown of the action.
-    /// @param stepCooldown The time between to steps on the wheel.
-    /// @param steps The steps left to do, positive or negative depending on the direction.
+    /// @param pushCooldown The additional cooldown after the current push has been finished.
+    /// @param stepsLeft The steps left to do, positive or negative depending on the direction.
+    /// @param stepsPerInterval The steps done per cool%own interval.
     void addMouseAction(MouseAction::Type const type,
                         Ms const                cooldown,
-                        Ms const                stepCooldown,
-                        std::uint16_t const     steps) noexcept
+                        Ms const                pushCooldown,
+                        std::uint16_t const     stepsLeft,
+                        std::uint16_t const     stepsPerInterval) noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
         _mouseActions.emplace_back();
-        auto &action        = _mouseActions.back();
-        action.type         = type;
-        action.cooldown     = cooldown;
-        action.stepCooldown = stepCooldown;
-        action.steps        = steps;
+        auto &action            = _mouseActions.back();
+        action.type             = type;
+        action.cooldown         = cooldown;
+        action.pushCooldown     = pushCooldown;
+        action.stepsLeft        = stepsLeft;
+        action.stepsPerInterval = stepsPerInterval;
     }
 
     /// @brief Emplaces a new KeyboardAction instance at the back of the _keyboardActions queue.
@@ -492,7 +518,7 @@ private:
             return Point{static_cast<std::int32_t>(x), static_cast<std::int32_t>(y)};
         };
 
-        auto const nextAction = _mouseActions.front();
+        auto nextAction = _mouseActions.front();
         _nextMouseAction += nextAction.cooldown;
         switch (nextAction.type)
         {
@@ -539,20 +565,41 @@ private:
             }
             break;
         }
-        case MouseAction::Type::Down:
+        case MouseAction::Type::Down: {
             if (!_interface.down(nextAction.button))
             {
                 ++_errorCounter;
             }
             _mouseActions.pop_front();
             break;
-        case MouseAction::Type::Up:
+        }
+        case MouseAction::Type::Up: {
             if (!_interface.up(nextAction.button))
             {
                 ++_errorCounter;
             }
             _mouseActions.pop_front();
             break;
+        }
+        case MouseAction::Type::Turn: {
+            auto const steps = nextAction.stepsPerInterval < 0
+                                   ? std::max(nextAction.stepsLeft, nextAction.stepsPerInterval)
+                                   : std::min(nextAction.stepsLeft, nextAction.stepsPerInterval);
+            if (!_interface.turnMouseWheel(steps))
+            {
+                ++_errorCounter;
+            }
+            else
+            {
+                nextAction.stepsLeft -= steps;
+                if (steps == 0)
+                {
+                    _nextMouseAction += nextAction.pushCooldown;
+                    _keyboardActions.pop_front();
+                }
+            }
+            break;
+        }
         default:
             // wait
             break;
