@@ -21,6 +21,7 @@ public:
     /// @param pCursorSpeedX The vertical cursor speed [pxl/s].
     /// @param pHorizontalSpeedFactor The factor to get from vertical to horizontal cursor speed.
     /// @param pWheelStepsPerPush The steps the mouse wheel does per of the finger.
+    /// @param pWheelSpeed The speed the wheel is turned at [steps/s].
     /// @param pWheelResetTime The time it takes for the finger to reposition for the next push [ms].
     /// @return The parameter set, if given values are within the correct boundaries.
     [[nodiscard]] static std::optional<Parameters> create(std::normal_distribution<> const pKeyDownTime,
@@ -31,6 +32,7 @@ public:
                                                           std::normal_distribution<> const pCursorSpeed,
                                                           double const                     pHorizontalSpeedFactor,
                                                           std::uint16_t const              pWheelStepsPerPush,
+                                                          std::uint16_t const              pWheelSpeed,
                                                           std::normal_distribution<> const pWheelResetTime) noexcept;
 
     /// @brief Returns parameters for the input emulator for a more human like input behavior.
@@ -83,6 +85,11 @@ public:
     /// @return The steps the mouse wheel does per of the finger.
     [[nodiscard]] inline std::uint16_t wheelStepsPerPush() const noexcept { return _wheelStepsPerPush; }
 
+    /// @brief Returns the speed the wheel is turned at [steps/s].
+    ///
+    /// @return The speed the wheel is turned at [steps/s].
+    [[nodiscard]] inline std::uint16_t wheelSpeed() const noexcept { return _wheelSpeed; }
+
     /// @brief Return the time it takes for the finger to reposition for the next push [ms].
     ///
     /// @return The time it takes for the finger to reposition for the next push [ms].
@@ -99,6 +106,7 @@ private:
     /// @param pCursorSpeedX The vertical cursor speed [pxl/s].
     /// @param pHorizontalSpeedFactor The factor to get from vertical to horizontal cursor speed.
     /// @param pWheelStepsPerPush The steps the mouse wheel does per of the finger.
+    /// @param pWheelSpeed The speed the wheel is turned at [steps/s].
     /// @param pWheelResetTime The time it takes for the finger to reposition for the next push [ms].
     Parameters(std::normal_distribution<> const pKeyDownTime,
                std::normal_distribution<> const pKeyUpTime,
@@ -108,6 +116,7 @@ private:
                std::normal_distribution<> const pCursorSpeed,
                double const                     pHorizontalSpeedFactor,
                std::uint16_t const              pWheelStepsPerPush,
+               std::uint16_t const              pWheelSpeed,
                std::normal_distribution<> const pWheelResetTime) noexcept;
 
     /// @brief The duration a key is pressed.
@@ -133,6 +142,9 @@ private:
 
     /// @brief The steps the mouse wheel does per of the finger.
     std::uint16_t _wheelStepsPerPush;
+
+    /// @brief The speed the wheel is turned at [steps/s].
+    std::uint16_t _wheelSpeed;
 
     /// @brief The time it takes for the finger to reposition for the next push [ms].
     std::normal_distribution<> _wheelResetTime;

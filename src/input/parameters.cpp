@@ -14,6 +14,7 @@ std::optional<Parameters> Parameters::create(std::normal_distribution<> const pK
                                              std::normal_distribution<> const pCursorSpeed,
                                              double const                     pHorizontalSpeedFactor,
                                              std::uint16_t const              pWheelStepsPerPush,
+                                             std::uint16_t const              pWheelSpeed,
                                              std::normal_distribution<> const pWheelResetTime) noexcept
 {
     auto const normalDistributionBaseCeck = [](std::normal_distribution<> const &toCeck) noexcept -> bool {
@@ -39,6 +40,11 @@ std::optional<Parameters> Parameters::create(std::normal_distribution<> const pK
     {
         return {};
     }
+    if (pWheelSpeed == 0U)
+    {
+        return {};
+    }
+
     return Parameters{pKeyDownTime,
                       pKeyUpTime,
                       pButtonDownTime,
@@ -47,6 +53,7 @@ std::optional<Parameters> Parameters::create(std::normal_distribution<> const pK
                       pCursorSpeed,
                       pHorizontalSpeedFactor,
                       pWheelStepsPerPush,
+                      pWheelSpeed,
                       pWheelResetTime};
 }
 
@@ -60,6 +67,7 @@ Parameters Parameters::Human() noexcept
                       std::normal_distribution<>{379.44, 187.39},
                       1.8,
                       28U,
+                      68U,
                       std::normal_distribution<>{400.0, 50.0}};
 }
 
@@ -74,6 +82,7 @@ Parameters Parameters::Fast() noexcept
                       std::normal_distribution<>{2160.0, 0.0001},
                       2.0,
                       100U,
+                      1000U,
                       std::normal_distribution<>{50.0, 0.0001}};
 }
 
@@ -85,6 +94,7 @@ Parameters::Parameters(std::normal_distribution<> const pKeyDownTime,
                        std::normal_distribution<> const pCursorSpeed,
                        double const                     pHorizontalSpeedFactor,
                        std::uint16_t const              pWheelStepsPerPush,
+                       std::uint16_t const              pWheelSpeed,
                        std::normal_distribution<> const pWheelResetTime) noexcept
     : _keyDownTime{pKeyDownTime},
       _keyUpTime{pKeyUpTime},
@@ -94,6 +104,7 @@ Parameters::Parameters(std::normal_distribution<> const pKeyDownTime,
       _cursorSpeed{pCursorSpeed},
       _horizontalSpeedFactor{pHorizontalSpeedFactor},
       _wheelStepsPerPush{pWheelStepsPerPush},
+      _wheelSpeed{pWheelSpeed},
       _wheelResetTime{pWheelResetTime}
 {}
 

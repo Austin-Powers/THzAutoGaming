@@ -25,6 +25,7 @@ struct Input_Parameters : public testing::Test
     double        cursorSpeedStdDev{10.6};
     double        horizontalSpeedFactor{1.23};
     std::uint16_t wheelStepsPerPush{46U};
+    std::uint16_t wheelSpeed{117U};
     double        wheelResetTimeMean{128.16};
     double        wheelResetTimeStdDev{28.16};
 
@@ -41,6 +42,7 @@ struct Input_Parameters : public testing::Test
                                                normal{cursorSpeedMean, cursorSpeedStdDev},
                                                horizontalSpeedFactor,
                                                wheelStepsPerPush,
+                                               wheelSpeed,
                                                normal{wheelResetTimeMean, wheelResetTimeStdDev})
                          .has_value());
         parameter = temp;
@@ -68,6 +70,7 @@ TEST_F(Input_Parameters, CreationReturnsEmptyOptionalIfGivenInvalidParameters)
     testCreationWithInvalidValues(horizontalSpeedFactor, -1.0);
     testCreationWithInvalidValues(wheelResetTimeMean, -1.0);
     testCreationWithInvalidValue<std::uint16_t>(wheelStepsPerPush, 0U);
+    testCreationWithInvalidValue<std::uint16_t>(wheelSpeed, 0U);
 }
 
 TEST_F(Input_Parameters, DataStoredCorrectly)
@@ -80,6 +83,7 @@ TEST_F(Input_Parameters, DataStoredCorrectly)
                                                normal{cursorSpeedMean, cursorSpeedStdDev},
                                                horizontalSpeedFactor,
                                                wheelStepsPerPush,
+                                               wheelSpeed,
                                                normal{wheelResetTimeMean, wheelResetTimeStdDev})
                          .value();
 
@@ -97,6 +101,7 @@ TEST_F(Input_Parameters, DataStoredCorrectly)
     EXPECT_EQ(sut.cursorSpeed().stddev(), cursorSpeedStdDev);
     EXPECT_EQ(sut.horizontalSpeedFactor(), horizontalSpeedFactor);
     EXPECT_EQ(sut.wheelStepsPerPush(), wheelStepsPerPush);
+    EXPECT_EQ(sut.wheelSpeed(), wheelSpeed);
     EXPECT_EQ(sut.wheelResetTime().mean(), wheelResetTimeMean);
     EXPECT_EQ(sut.wheelResetTime().stddev(), wheelResetTimeStdDev);
 }
@@ -112,6 +117,7 @@ TEST_F(Input_Parameters, PresetsValid)
                                               parameters.cursorSpeed(),
                                               parameters.horizontalSpeedFactor(),
                                               parameters.wheelStepsPerPush(),
+                                              parameters.wheelSpeed(),
                                               parameters.wheelResetTime())
                         .has_value());
     };
