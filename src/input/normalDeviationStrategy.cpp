@@ -47,7 +47,19 @@ double NormalDeviationStrategy::calculateHorizontalSpeedFactor() noexcept
     return _parameters.horizontalSpeedFactor();
 }
 
-std::uint16_t NormalDeviationStrategy::calculateWheelSteps() noexcept { return _parameters.wheelStepsPerPush(); }
+std::int16_t NormalDeviationStrategy::calculateWheelSteps(std::int16_t const remainingSteps) noexcept
+{
+    auto const limit = _parameters.wheelStepsPerPush();
+    if (remainingSteps < 0)
+    {
+        return std::max<std::int16_t>(-limit, remainingSteps);
+    }
+    else
+    {
+        return std::min<std::int16_t>(limit, remainingSteps);
+    }
+    return 0;
+}
 
 std::uint16_t NormalDeviationStrategy::calculateWheelSpeed() noexcept { return _parameters.wheelSpeed(); }
 

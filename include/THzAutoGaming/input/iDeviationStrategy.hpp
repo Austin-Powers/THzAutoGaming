@@ -57,8 +57,9 @@ public:
 
     /// @brief Calculates the next amount of steps done by the wheel.
     ///
+    /// @param remainingSteps The remaining steps to be done.
     /// @return The next amount of steps done by the wheel.
-    [[nodiscard]] virtual std::uint16_t calculateWheelSteps() noexcept = 0;
+    [[nodiscard]] virtual std::int16_t calculateWheelSteps(std::int16_t const remainingSteps) noexcept = 0;
 
     /// @brief Calculates the speed the wheel is turned at [steps/s].
     ///

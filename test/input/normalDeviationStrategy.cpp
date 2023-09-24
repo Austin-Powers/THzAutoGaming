@@ -179,7 +179,14 @@ TEST_F(Input_NormalDeviationStrategy, CalculateHorizontalSpeedFactor)
 
 TEST_F(Input_NormalDeviationStrategy, CalculateWheelSteps)
 {
-    EXPECT_EQ(Input::Parameters::Human().wheelStepsPerPush(), sut.calculateWheelSteps());
+    auto const limit = Input::Parameters::Human().wheelStepsPerPush();
+    EXPECT_EQ(sut.calculateWheelSteps(limit + 1), limit);
+    EXPECT_EQ(sut.calculateWheelSteps(limit), limit);
+    EXPECT_EQ(sut.calculateWheelSteps(limit - 1), limit - 1);
+    EXPECT_EQ(sut.calculateWheelSteps(0), 0);
+    EXPECT_EQ(sut.calculateWheelSteps(1 - limit), 1 - limit);
+    EXPECT_EQ(sut.calculateWheelSteps(0 - limit), 0 - limit);
+    EXPECT_EQ(sut.calculateWheelSteps(-1 - limit), 0 - limit);
 }
 
 TEST_F(Input_NormalDeviationStrategy, CalculateWheelSpeed)

@@ -44,7 +44,7 @@ public:
     [[nodiscard]] double calculateHorizontalSpeedFactor() noexcept override;
 
     /// @copydoc IDeviationStrategy::calculateWheelSteps
-    [[nodiscard]] std::uint16_t calculateWheelSteps() noexcept override;
+    [[nodiscard]] std::int16_t calculateWheelSteps(std::int16_t const remainingSteps) noexcept override;
 
     /// @copydoc IDeviationStrategy::calculateWheelSpeed
     [[nodiscard]] std::uint16_t calculateWheelSpeed() noexcept override;
