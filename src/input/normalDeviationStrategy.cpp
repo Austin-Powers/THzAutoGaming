@@ -49,6 +49,8 @@ double NormalDeviationStrategy::calculateHorizontalSpeedFactor() noexcept
 
 std::uint16_t NormalDeviationStrategy::calculateWheelSteps() noexcept { return _parameters.wheelStepsPerPush(); }
 
+std::uint16_t NormalDeviationStrategy::calculateWheelSpeed() noexcept { return _parameters.wheelSpeed(); }
+
 std::chrono::milliseconds NormalDeviationStrategy::calculateWheelResetTime() noexcept
 {
     return std::chrono::milliseconds{calculateValueUsing(_parameters.wheelResetTime())};

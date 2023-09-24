@@ -46,6 +46,9 @@ public:
     /// @copydoc IDeviationStrategy::calculateWheelSteps
     [[nodiscard]] std::uint16_t calculateWheelSteps() noexcept override;
 
+    /// @copydoc IDeviationStrategy::calculateWheelSpeed
+    [[nodiscard]] std::uint16_t calculateWheelSpeed() noexcept override;
+
     /// @copydoc IDeviationStrategy::calculateWheelResetTime
     [[nodiscard]] std::chrono::milliseconds calculateWheelResetTime() noexcept override;
 

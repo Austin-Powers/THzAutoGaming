@@ -60,6 +60,11 @@ public:
     /// @return The next amount of steps done by the wheel.
     [[nodiscard]] virtual std::uint16_t calculateWheelSteps() noexcept = 0;
 
+    /// @brief Calculates the speed the wheel is turned at [steps/s].
+    ///
+    /// @return The speed the wheel is turned at [steps/s].
+    [[nodiscard]] virtual std::uint16_t calculateWheelSpeed() noexcept = 0;
+
     /// @brief Calculates the next reset interval for the mouse wheel.
     ///
     /// @return The next interval between to mousewheel turns.

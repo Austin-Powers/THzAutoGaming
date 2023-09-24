@@ -177,4 +177,38 @@ TEST_F(Input_NormalDeviationStrategy, CalculateHorizontalSpeedFactor)
     EXPECT_EQ(Input::Parameters::Human().horizontalSpeedFactor(), sut.calculateHorizontalSpeedFactor());
 }
 
+TEST_F(Input_NormalDeviationStrategy, CalculateWheelSteps)
+{
+    EXPECT_EQ(Input::Parameters::Human().wheelStepsPerPush(), sut.calculateWheelSteps());
+}
+
+TEST_F(Input_NormalDeviationStrategy, CalculateWheelSpeed)
+{
+    EXPECT_EQ(Input::Parameters::Human().wheelSpeed(), sut.calculateWheelSpeed());
+}
+
+TEST_F(Input_NormalDeviationStrategy, CalculateWheelResetTime)
+{
+    auto const parameter = Input::Parameters::Human().wheelResetTime();
+    auto const maxValue  = static_cast<std::uint32_t>(parameter.mean() + (3.0 * parameter.stddev()));
+
+    auto lastValue = sut.calculateWheelResetTime();
+    EXPECT_GT(lastValue.count(), 0U);
+    EXPECT_LT(lastValue.count(), maxValue);
+
+    auto lastAndCurrentAreEqualCounter = 0U;
+    for (auto i = 0U; i < 64U; ++i)
+    {
+        auto const currentValue = sut.calculateWheelResetTime();
+        EXPECT_GT(currentValue.count(), 0U);
+        EXPECT_LT(currentValue.count(), maxValue);
+        if (currentValue == lastValue)
+        {
+            ++lastAndCurrentAreEqualCounter;
+        }
+        lastValue = currentValue;
+    }
+    EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
+}
+
 } // namespace Terrahertz::UnitTests
