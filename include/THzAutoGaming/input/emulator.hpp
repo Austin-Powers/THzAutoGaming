@@ -167,7 +167,7 @@ public:
         auto const target = _strategy->calculateTargetIn(targetArea);
         auto const speed  = _strategy->calculateSpeed() / rate;
         auto const factor = _strategy->calculateHorizontalSpeedFactor() - 1.0;
-        addMouseAction(MouseAction::Type::Move, Ms{1000U / rate}, MouseButton::Left, target.x, target.y, speed, factor);
+        addMouseAction(MouseAction::Type::Move, Ms{1000U / rate}, target.x, target.y, speed, factor);
     }
 
     /// @brief Clicks with the given mouse button.
@@ -276,6 +276,9 @@ private:
             /// @brief Moves the cursor to a given position.
             Move,
 
+            /// @brief Turns the mouse wheel.
+            Turn,
+
             /// @brief Sync up with the keyboard.
             Sync
         };
@@ -287,20 +290,35 @@ private:
         /// move command.
         Ms cooldown;
 
-        /// @brief The button of the action.
-        MouseButton button;
+        union
+        {
+            /// @brief The button of the action.
+            MouseButton button;
 
-        /// @brief The x coordinate for move actions.
-        std::uint32_t x;
+            struct
+            {
+                /// @brief The x coordinate for move actions.
+                std::uint32_t x;
 
-        /// @brief The y coordinate for move actions.
-        std::uint32_t y;
+                /// @brief The y coordinate for move actions.
+                std::uint32_t y;
 
-        /// @brief The amount of pixels traveled vertically over the interval stored in cooldown.
-        double speed;
+                /// @brief The amount of pixels traveled vertically over the interval stored in cooldown.
+                double speed;
 
-        /// @brief The factor to get from vertical to horizontal cursor speed.
-        double factor;
+                /// @brief The factor to get from vertical to horizontal cursor speed.
+                double factor;
+            };
+
+            struct
+            {
+                /// @brief The time between two steps of the mouse wheel.
+                Ms stepCooldown;
+
+                /// @brief The steps left to do, positive or negative depending on the direction.
+                std::int16_t steps;
+            };
+        };
     };
 
     /// @brief Data structure for a single keyboard related action performed by the emulator.
@@ -332,25 +350,67 @@ private:
         Key key;
     };
 
-    /// @brief Emplaces a new MouseAction instance at the back of the _mouseActions queue.
+    /// @brief Emplaces a new button related MouseAction instance at the back of the _mouseActions queue.
     ///
     /// @param type The type of the action.
     /// @param cooldown The cooldown of the action.
-    /// @param button The button of the action (optional).
-    /// @param x The x coordinate for move actions (optional).
-    /// @param y The y coordinate for move actions (optional).
-    /// @param speed The speed for move actions [pxl/cooldown] (optional).
-    /// @param factor The factor for move actions (optional).
+    /// @param button The button of the action, Left by default.
     void addMouseAction(MouseAction::Type const type,
                         Ms const                cooldown,
-                        MouseButton const       button = MouseButton::Left,
-                        std::uint32_t const     x      = 0U,
-                        std::uint32_t const     y      = 0U,
-                        double const            speed  = 1000.0,
-                        double const            factor = 0.0) noexcept
+                        MouseButton const       button = MouseButton::Left) noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
-        _mouseActions.emplace_back(type, cooldown, button, x, y, speed, factor);
+        _mouseActions.emplace_back();
+        auto &action    = _mouseActions.back();
+        action.type     = type;
+        action.cooldown = cooldown;
+        action.button   = button;
+    }
+
+    /// @brief Emplaces a new movement related MouseAction instance at the back of the _mouseActions queue.
+    ///
+    /// @param type The type of the action.
+    /// @param cooldown The cooldown of the action.
+    /// @param x The target x coordinate.
+    /// @param y The target y coordonate.
+    /// @param speed The speed at which to approach the target [pxl/cooldown]
+    /// @param factor The horizontal speed scaling factor.
+    void addMouseAction(MouseAction::Type const type,
+                        Ms const                cooldown,
+                        std::uint32_t const     x,
+                        std::uint32_t const     y,
+                        double const            speed,
+                        double const            factor) noexcept
+    {
+        WorkerThread::UniqueLock lock{_worker.mutex};
+        _mouseActions.emplace_back();
+        auto &action    = _mouseActions.back();
+        action.type     = type;
+        action.cooldown = cooldown;
+        action.x        = x;
+        action.y        = y;
+        action.speed    = speed;
+        action.factor   = factor;
+    }
+
+    /// @brief Emplaces a new mouse wheel related MouseAction instance at the back of the _mouseActions queue.
+    ///
+    /// @param type The type of the action.
+    /// @param cooldown The cooldown of the action.
+    /// @param stepCooldown The time between to steps on the wheel.
+    /// @param steps The steps left to do, positive or negative depending on the direction.
+    void addMouseAction(MouseAction::Type const type,
+                        Ms const                cooldown,
+                        Ms const                stepCooldown,
+                        std::uint16_t const     steps) noexcept
+    {
+        WorkerThread::UniqueLock lock{_worker.mutex};
+        _mouseActions.emplace_back();
+        auto &action        = _mouseActions.back();
+        action.type         = type;
+        action.cooldown     = cooldown;
+        action.stepCooldown = stepCooldown;
+        action.steps        = steps;
     }
 
     /// @brief Emplaces a new KeyboardAction instance at the back of the _keyboardActions queue.
