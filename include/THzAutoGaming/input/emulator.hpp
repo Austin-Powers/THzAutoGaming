@@ -570,7 +570,10 @@ private:
             {
                 ++_errorCounter;
             }
-            _mouseActions.pop_front();
+            else
+            {
+                _mouseActions.pop_front();
+            }
             break;
         }
         case MouseAction::Type::Up: {
@@ -578,7 +581,10 @@ private:
             {
                 ++_errorCounter;
             }
-            _mouseActions.pop_front();
+            else
+            {
+                _mouseActions.pop_front();
+            }
             break;
         }
         case MouseAction::Type::Turn: {
@@ -610,7 +616,6 @@ private:
     void performNextKeyboardAction() noexcept
     {
         auto const nextAction = _keyboardActions.front();
-        _keyboardActions.pop_front();
         _nextKeyboardAction += nextAction.cooldown;
         switch (nextAction.type)
         {
@@ -619,11 +624,19 @@ private:
             {
                 ++_errorCounter;
             }
+            else
+            {
+                _keyboardActions.pop_front();
+            }
             break;
         case KeyboardAction::Type::Up:
             if (!_interface.up(nextAction.key))
             {
                 ++_errorCounter;
+            }
+            else
+            {
+                _keyboardActions.pop_front();
             }
             break;
         default:
