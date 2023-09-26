@@ -19,16 +19,16 @@ struct Input_Emulator : public testing::Test
         ~MockStrategy() noexcept { EXPECT_TRUE(_calls.empty()) << "Not all expected calls were made"; }
 
         void expectCalculateKeyDownTime(ms const returnValue) noexcept { setup(1U, returnValue); }
-        ms   calculateKeyDownTime() noexcept override { return call(1U); }
+        ms   calculateKeyDownTime() noexcept override { return check(1U); }
 
         void expectCalculateKeyUpTime(ms const returnValue) noexcept { setup(2U, returnValue); }
-        ms   calculateKeyUpTime() noexcept override { return call(2U); }
+        ms   calculateKeyUpTime() noexcept override { return check(2U); }
 
         void expectCalculateButtonDownTime(ms const returnValue) noexcept { setup(3U, returnValue); }
-        ms   calculateButtonDownTime() noexcept override { return call(3U); }
+        ms   calculateButtonDownTime() noexcept override { return check(3U); }
 
         void expectCalculateButtonUpTime(ms const returnValue) noexcept { setup(4U, returnValue); }
-        ms   calculateButtonUpTime() noexcept override { return call(4U); }
+        ms   calculateButtonUpTime() noexcept override { return check(4U); }
 
         void expectCalculateTargetIn(Point const returnValue, Rectangle const &input) noexcept
         {
@@ -135,17 +135,17 @@ struct Input_Emulator : public testing::Test
         }
 
         void expectCalculateWheelResetTime(ms const returnValue) noexcept { setup(10U, returnValue); }
-        ms   calculateWheelResetTime() noexcept override { return call(10U); }
+        ms   calculateWheelResetTime() noexcept override { return check(10U); }
 
     private:
         void setup(std::uint8_t const id, ms const time) noexcept
         {
             Expectation ex;
-            ex.id   = 1U;
+            ex.id   = id;
             ex.time = time;
             _calls.push_back(ex);
         }
-        ms call(std::uint8_t const id) noexcept
+        ms check(std::uint8_t const id) noexcept
         {
             ms returnValue{};
             EXPECT_FALSE(_calls.empty()) << "Unexpected additional call";
@@ -198,159 +198,145 @@ struct Input_Emulator : public testing::Test
             };
         };
 
-        MockSystemInterface(std::deque<Call> &rCalls) noexcept : calls{&rCalls} {}
+        ~MockSystemInterface() noexcept { EXPECT_TRUE(_calls->empty()) << "Not all expected calls were made"; }
 
-        MockSystemInterface(MockSystemInterface const &other) noexcept : calls{other.calls} {}
+        MockSystemInterface(std::deque<Call> &rCalls) noexcept : _calls{&rCalls} {}
+
+        MockSystemInterface(MockSystemInterface const &other) noexcept : _calls{other._calls} {}
 
         MockSystemInterface &operator=(MockSystemInterface const &other) noexcept
         {
-            calls = other.calls;
+            _calls = other._calls;
             return *this;
         }
 
-        bool isDown(Input::MouseButton const mb) noexcept
-        {
-            auto returnValue{false};
-            EXPECT_FALSE(calls->empty()) << "Unexpected additional call";
-            if (!calls->empty())
-            {
-                EXPECT_EQ(calls->front().id, 1U) << "Unexpected function call";
-                EXPECT_EQ(calls->front().mb, mb) << "Parameter wrong";
-                returnValue = calls->front().returnValue;
-                calls->pop_front();
-            }
-            return returnValue;
-        }
+        void expectIsDown(Input::MouseButton const mb, bool returnValue) noexcept { setup(1U, mb, returnValue); }
+        bool isDown(Input::MouseButton const mb) noexcept { return check(1U, mb); }
 
-        bool isDown(Input::Key const k) noexcept
-        {
-            auto returnValue{false};
-            EXPECT_FALSE(calls->empty()) << "Unexpected additional call";
-            if (!calls->empty())
-            {
-                EXPECT_EQ(calls->front().id, 2U) << "Unexpected function call";
-                EXPECT_EQ(calls->front().k, k) << "Parameter wrong";
-                returnValue = calls->front().returnValue;
-                calls->pop_front();
-            }
-            return returnValue;
-        }
+        void expectIsDown(Input::Key const k, bool returnValue) noexcept { setup(2U, k, returnValue); }
+        bool isDown(Input::Key const k) noexcept { return check(2U, k); }
 
-        bool isActive(Input::KeyboardLock const l) noexcept
-        {
-            auto returnValue{false};
-            EXPECT_FALSE(calls->empty()) << "Unexpected additional call";
-            if (!calls->empty())
-            {
-                EXPECT_EQ(calls->front().id, 3U) << "Unexpected function call";
-                EXPECT_EQ(calls->front().l, l) << "Parameter wrong";
-                returnValue = calls->front().returnValue;
-                calls->pop_front();
-            }
-            return returnValue;
-        }
+        void expectIsActive(Input::KeyboardLock const l, bool returnValue) noexcept { setup(3U, l, returnValue); }
+        bool isActive(Input::KeyboardLock const l) noexcept { return check(3U, l); }
 
+        void expectGetCursorPosition(std::uint32_t const x, std::uint32_t const y, bool returnValue) noexcept
+        {
+            Call call;
+            call.id = 4U;
+            call.x  = x;
+            call.y  = y;
+
+            call.returnValue = returnValue;
+            _calls->push_back(call);
+        }
         bool getCursorPosition(std::uint32_t &x, std::uint32_t &y) noexcept
         {
             auto returnValue{false};
-            EXPECT_FALSE(calls->empty()) << "Unexpected additional call";
-            if (!calls->empty())
+            EXPECT_FALSE(_calls->empty()) << "Unexpected additional call";
+            if (!_calls->empty())
             {
-                EXPECT_EQ(calls->front().id, 4U) << "Unexpected function call";
-                x           = calls->front().x;
-                y           = calls->front().y;
-                returnValue = calls->front().returnValue;
-                calls->pop_front();
+                EXPECT_EQ(_calls->front().id, 4U) << "Unexpected function call";
+                x           = _calls->front().x;
+                y           = _calls->front().y;
+                returnValue = _calls->front().returnValue;
+                _calls->pop_front();
             }
             return returnValue;
         }
 
+        void expectSetCursorPosition(std::uint32_t const x, std::uint32_t const y, bool returnValue) noexcept
+        {
+            Call call;
+            call.id = 5U;
+            call.x  = x;
+            call.y  = y;
+
+            call.returnValue = returnValue;
+            _calls->push_back(call);
+        }
         bool setCursorPosition(std::uint32_t const x, std::uint32_t const y) noexcept
         {
             auto returnValue{false};
-            EXPECT_FALSE(calls->empty()) << "Unexpected additional call";
-            if (!calls->empty())
+            EXPECT_FALSE(_calls->empty()) << "Unexpected additional call";
+            if (!_calls->empty())
             {
-                EXPECT_EQ(calls->front().id, 5U) << "Unexpected function call";
-                EXPECT_EQ(calls->front().x, x) << "Parameter wrong";
-                EXPECT_EQ(calls->front().y, y) << "Parameter wrong";
-                returnValue = calls->front().returnValue;
-                calls->pop_front();
+                EXPECT_EQ(_calls->front().id, 5U) << "Unexpected function call";
+                EXPECT_EQ(_calls->front().x, x) << "Parameter wrong";
+                EXPECT_EQ(_calls->front().y, y) << "Parameter wrong";
+                returnValue = _calls->front().returnValue;
+                _calls->pop_front();
             }
             return returnValue;
         }
 
-        bool turnMouseWheel(std::int16_t const steps) noexcept
+        void expectTurnMouseWheel(std::int16_t const steps, bool returnValue) noexcept
+        {
+            setup(6U, steps, returnValue);
+        }
+        bool turnMouseWheel(std::int16_t const steps) noexcept { return check(6U, steps); }
+
+        void expectDown(Input::MouseButton const mb, bool returnValue) noexcept { setup(7U, mb, returnValue); }
+        bool down(Input::MouseButton const mb) noexcept { return check(7U, mb); }
+
+        void expectUp(Input::MouseButton const mb, bool returnValue) noexcept { setup(8U, mb, returnValue); }
+        bool up(Input::MouseButton const mb) noexcept { return check(8U, mb); }
+
+        void expectDown(Input::Key const k, bool returnValue) noexcept { setup(9U, k, returnValue); }
+        bool down(Input::Key const k) noexcept { return check(9U, k); }
+
+        void expectUp(Input::Key const k, bool returnValue) noexcept { setup(10U, k, returnValue); }
+        bool up(Input::Key const k) noexcept { return check(10U, k); }
+
+    private:
+        template <typename T>
+        void setup(std::uint8_t const id, T const t, bool returnValue) noexcept
+        {
+            Call call;
+            call.id           = id;
+            getValue<T>(call) = t;
+            call.returnValue  = returnValue;
+            _calls->push_back(call);
+        }
+
+        template <typename T>
+        bool check(std::uint8_t const id, T const t) noexcept
         {
             auto returnValue{false};
-            EXPECT_FALSE(calls->empty()) << "Unexpected additional call";
-            if (!calls->empty())
+            EXPECT_FALSE(_calls->empty()) << "Unexpected additional call";
+            if (!_calls->empty())
             {
-                EXPECT_EQ(calls->front().id, 6U) << "Unexpected function call";
-                EXPECT_EQ(calls->front().steps, steps) << "Parameter wrong";
-                returnValue = calls->front().returnValue;
-                calls->pop_front();
+                EXPECT_EQ(_calls->front().id, id) << "Unexpected function call";
+                EXPECT_EQ(getValue<T>(_calls->front()), t);
+                returnValue = _calls->front().returnValue;
+                _calls->pop_front();
             }
             return returnValue;
         }
 
-        bool down(Input::MouseButton const mb) noexcept
+        template <typename T>
+        T &getValue(Call &call) noexcept = delete;
+        template <>
+        Input::MouseButton &getValue(Call &call) noexcept
         {
-            auto returnValue{false};
-            EXPECT_FALSE(calls->empty()) << "Unexpected additional call";
-            if (!calls->empty())
-            {
-                EXPECT_EQ(calls->front().id, 7U) << "Unexpected function call";
-                EXPECT_EQ(calls->front().mb, mb) << "Parameter wrong";
-                returnValue = calls->front().returnValue;
-                calls->pop_front();
-            }
-            return returnValue;
+            return call.mb;
         }
-
-        bool up(Input::MouseButton const mb) noexcept
+        template <>
+        Input::Key &getValue(Call &call) noexcept
         {
-            auto returnValue{false};
-            EXPECT_FALSE(calls->empty()) << "Unexpected additional call";
-            if (!calls->empty())
-            {
-                EXPECT_EQ(calls->front().id, 8U) << "Unexpected function call";
-                EXPECT_EQ(calls->front().mb, mb) << "Parameter wrong";
-                returnValue = calls->front().returnValue;
-                calls->pop_front();
-            }
-            return returnValue;
+            return call.k;
         }
-
-        bool down(Input::Key const k) noexcept
+        template <>
+        Input::KeyboardLock &getValue(Call &call) noexcept
         {
-            auto returnValue{false};
-            EXPECT_FALSE(calls->empty()) << "Unexpected additional call";
-            if (!calls->empty())
-            {
-                EXPECT_EQ(calls->front().id, 9U) << "Unexpected function call";
-                EXPECT_EQ(calls->front().k, k) << "Parameter wrong";
-                returnValue = calls->front().returnValue;
-                calls->pop_front();
-            }
-            return returnValue;
+            return call.l;
         }
-
-        bool up(Input::Key const k) noexcept
+        template <>
+        std::int16_t &getValue(Call &call) noexcept
         {
-            auto returnValue{false};
-            EXPECT_FALSE(calls->empty()) << "Unexpected additional call";
-            if (!calls->empty())
-            {
-                EXPECT_EQ(calls->front().id, 10U) << "Unexpected function call";
-                EXPECT_EQ(calls->front().k, k) << "Parameter wrong";
-                returnValue = calls->front().returnValue;
-                calls->pop_front();
-            }
-            return returnValue;
+            return call.steps;
         }
 
-        std::deque<Call> *calls;
+        std::deque<Call> *_calls;
     };
 
     using TestEmulator = Input::Emulator<MockSystemInterface>;
@@ -392,59 +378,73 @@ TEST_F(Input_Emulator, ParametersCorrectAfterConstruction)
 
 TEST_F(Input_Emulator, GetCursorPositionRelaisInformationCorrectly)
 {
-    // std::uint32_t x{};
-    // std::uint32_t y{};
-    // EXPECT_FALSE(sut.getCursorPosition(x, y));
-    // systemInterfaceData.returnValue = true;
-    // systemInterfaceData.x           = 22U;
-    // systemInterfaceData.y           = 40U;
-    // EXPECT_TRUE(sut.getCursorPosition(x, y));
-    // EXPECT_EQ(x, systemInterfaceData.x);
-    // EXPECT_EQ(y, systemInterfaceData.y);
+    systemInterface.expectGetCursorPosition(23U, 42U, false);
+    systemInterface.expectGetCursorPosition(22U, 40U, true);
+
+    std::uint32_t x{};
+    std::uint32_t y{};
+    EXPECT_FALSE(sut.getCursorPosition(x, y));
+    EXPECT_TRUE(sut.getCursorPosition(x, y));
+    EXPECT_EQ(x, 22U);
+    EXPECT_EQ(y, 40U);
 }
 
 TEST_F(Input_Emulator, IsMouseButtonDown)
 {
-    // EXPECT_FALSE(sut.isDown(Input::MouseButton::Middle));
-    // EXPECT_EQ(systemInterfaceData.mb, Input::MouseButton::Middle);
-    // systemInterfaceData.returnValue = true;
-    // EXPECT_TRUE(sut.isDown(Input::MouseButton::Left));
-    // EXPECT_EQ(systemInterfaceData.mb, Input::MouseButton::Left);
+    systemInterface.expectIsDown(Input::MouseButton::Middle, false);
+    EXPECT_FALSE(sut.isDown(Input::MouseButton::Middle));
+    systemInterface.expectIsDown(Input::MouseButton::Left, true);
+    EXPECT_TRUE(sut.isDown(Input::MouseButton::Left));
 }
 
 TEST_F(Input_Emulator, IsKeyDown)
 {
-    // EXPECT_FALSE(sut.isDown(Input::Key::Backspace));
-    // EXPECT_EQ(systemInterfaceData.k, Input::Key::Backspace);
-    // systemInterfaceData.returnValue = true;
-    // EXPECT_TRUE(sut.isDown(Input::Key::ControlKey));
-    // EXPECT_EQ(systemInterfaceData.k, Input::Key::ControlKey);
+    systemInterface.expectIsDown(Input::Key::Backspace, false);
+    EXPECT_FALSE(sut.isDown(Input::Key::Backspace));
+    systemInterface.expectIsDown(Input::Key::ControlKey, true);
+    EXPECT_TRUE(sut.isDown(Input::Key::ControlKey));
 }
 
 TEST_F(Input_Emulator, IsKeyboardLockActive)
 {
-    // EXPECT_FALSE(sut.isActive(Input::KeyboardLock::Caps));
-    // EXPECT_EQ(systemInterfaceData.l, Input::KeyboardLock::Caps);
-    // systemInterfaceData.returnValue = true;
-    // EXPECT_TRUE(sut.isActive(Input::KeyboardLock::Num));
-    // EXPECT_EQ(systemInterfaceData.l, Input::KeyboardLock::Num);
+    systemInterface.expectIsActive(Input::KeyboardLock::Caps, false);
+    EXPECT_FALSE(sut.isActive(Input::KeyboardLock::Caps));
+    systemInterface.expectIsActive(Input::KeyboardLock::Num, true);
+    EXPECT_TRUE(sut.isActive(Input::KeyboardLock::Num));
 }
 
 TEST_F(Input_Emulator, CommandToDoesNotBlockCaller)
 {
-    // auto const startTime = std::chrono::steady_clock::now();
-    // sut.click(Input::MouseButton::Left);
-    // auto const endTime  = std::chrono::steady_clock::now();
-    // auto const duration = std::chrono::duration_cast<ms>(endTime - startTime);
-    // EXPECT_LE(duration.count(), 10U);
+    strategy.expectCalculateButtonDownTime(ms{2U});
+    strategy.expectCalculateButtonUpTime(ms{2U});
+    systemInterface.expectDown(Input::MouseButton::Left, true);
+    systemInterface.expectUp(Input::MouseButton::Left, true);
+
+    auto const startTime = std::chrono::steady_clock::now();
+    sut.click(Input::MouseButton::Left);
+    auto const endTime  = std::chrono::steady_clock::now();
+    auto const duration = std::chrono::duration_cast<ms>(endTime - startTime);
+    EXPECT_LE(duration.count(), 10U);
+    // let the commands be executed
+    std::this_thread::sleep_for(ms{10});
 }
 
 TEST_F(Input_Emulator, KeyDown)
 {
+    strategy.expectCalculateKeyDownTime(ms{2});
+    systemInterface.expectDown(Input::Key::Return, false);
+    systemInterface.expectDown(Input::Key::Return, true);
     sut.down(Input::Key::Return);
-    // interface is called, returns error
-    // check error counter
-    // check if emulator tries again, return no error
+    std::this_thread::sleep_for(ms{10});
+}
+
+TEST_F(Input_Emulator, KeyUp)
+{
+    strategy.expectCalculateKeyUpTime(ms{2});
+    systemInterface.expectUp(Input::Key::Return, false);
+    systemInterface.expectUp(Input::Key::Return, true);
+    sut.up(Input::Key::Return);
+    std::this_thread::sleep_for(ms{10});
 }
 
 TEST_F(Input_Emulator, ActionCountMouse) {}
@@ -472,8 +472,6 @@ TEST_F(Input_Emulator, ButtonDown) {}
 TEST_F(Input_Emulator, ButtonUp) {}
 
 TEST_F(Input_Emulator, TurnMouseWheel) {}
-
-TEST_F(Input_Emulator, KeyUp) {}
 
 TEST_F(Input_Emulator, KeyPress) {}
 
