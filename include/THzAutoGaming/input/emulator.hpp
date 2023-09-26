@@ -310,6 +310,11 @@ private:
         /// move command.
         Ms cooldown;
 
+        /// @brief The additional cooldown after the current push has been finished.
+        ///
+        /// @remark Not part of the union as this would cause a build error on linux.
+        Ms pushCooldown;
+
         union
         {
             /// @brief The button of the action.
@@ -332,9 +337,6 @@ private:
 
             struct
             {
-                /// @brief The additional cooldown after the current push has been finished.
-                Ms pushCooldown;
-
                 /// @brief The steps left to do, positive or negative depending on the direction.
                 std::int16_t stepsLeft;
 

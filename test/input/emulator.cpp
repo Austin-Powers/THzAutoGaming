@@ -315,26 +315,6 @@ struct Input_Emulator : public testing::Test
 
         template <typename T>
         T &getValue(Call &call) noexcept = delete;
-        template <>
-        Input::MouseButton &getValue(Call &call) noexcept
-        {
-            return call.mb;
-        }
-        template <>
-        Input::Key &getValue(Call &call) noexcept
-        {
-            return call.k;
-        }
-        template <>
-        Input::KeyboardLock &getValue(Call &call) noexcept
-        {
-            return call.l;
-        }
-        template <>
-        std::int16_t &getValue(Call &call) noexcept
-        {
-            return call.steps;
-        }
 
         std::deque<Call> *_calls;
     };
@@ -349,6 +329,27 @@ struct Input_Emulator : public testing::Test
 
     TestEmulator sut{&strategy, systemInterface};
 };
+
+template <>
+Input::MouseButton &Input_Emulator::MockSystemInterface::getValue(Call &call) noexcept
+{
+    return call.mb;
+}
+template <>
+Input::Key &Input_Emulator::MockSystemInterface::getValue(Call &call) noexcept
+{
+    return call.k;
+}
+template <>
+Input::KeyboardLock &Input_Emulator::MockSystemInterface::getValue(Call &call) noexcept
+{
+    return call.l;
+}
+template <>
+std::int16_t &Input_Emulator::MockSystemInterface::getValue(Call &call) noexcept
+{
+    return call.steps;
+}
 
 TEST_F(Input_Emulator, ConstructionCorrect)
 {

@@ -13,7 +13,7 @@ class IDeviationStrategy
 {
 public:
     /// @brief Default the destructor to make it virtual.
-    [[nodiscard]] virtual ~IDeviationStrategy() noexcept {};
+    virtual ~IDeviationStrategy() noexcept {};
 
     /// @brief Calculates the duration for which a key has to be in the down position before the next action on the
     /// keyboard.
