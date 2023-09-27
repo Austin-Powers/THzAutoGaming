@@ -3,6 +3,7 @@
 #include "THzAutoGaming/input/normalDeviationStrategy.hpp"
 
 #include <chrono>
+#include <condition_variable>
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <thread>
@@ -61,7 +62,7 @@ struct Input_Emulator : public testing::Test
         }
         std::uint32_t calculateSpeed() noexcept override
         {
-            std::uint32_t returnValue{};
+            std::uint32_t returnValue{1000};
             EXPECT_FALSE(_calls.empty()) << "Unexpected additional call";
             if (!_calls.empty())
             {
@@ -81,7 +82,7 @@ struct Input_Emulator : public testing::Test
         }
         double calculateHorizontalSpeedFactor() noexcept override
         {
-            double returnValue{};
+            double returnValue{1.0};
             EXPECT_FALSE(_calls.empty()) << "Unexpected additional call";
             if (!_calls.empty())
             {
@@ -96,13 +97,17 @@ struct Input_Emulator : public testing::Test
         {
             Expectation ex;
             ex.id             = 8U;
-            ex.factor         = returnValue;
+            ex.wheelSteps     = returnValue;
             ex.remainingSteps = input;
             _calls.push_back(ex);
         }
         std::int16_t calculateWheelSteps(std::int16_t const remainingSteps) noexcept override
         {
-            std::int16_t returnValue{};
+            std::int16_t returnValue{10};
+            if (remainingSteps < 0)
+            {
+                returnValue = -returnValue;
+            }
             EXPECT_FALSE(_calls.empty()) << "Unexpected additional call";
             if (!_calls.empty())
             {
@@ -123,7 +128,7 @@ struct Input_Emulator : public testing::Test
         }
         std::uint16_t calculateWheelSpeed() noexcept override
         {
-            std::uint16_t returnValue{};
+            std::uint16_t returnValue{20};
             EXPECT_FALSE(_calls.empty()) << "Unexpected additional call";
             if (!_calls.empty())
             {
@@ -231,7 +236,7 @@ struct Input_Emulator : public testing::Test
         }
         bool getCursorPosition(std::uint32_t &x, std::uint32_t &y) noexcept
         {
-            auto returnValue{false};
+            auto returnValue{true};
             EXPECT_FALSE(_calls->empty()) << "Unexpected additional call";
             if (!_calls->empty())
             {
@@ -256,7 +261,7 @@ struct Input_Emulator : public testing::Test
         }
         bool setCursorPosition(std::uint32_t const x, std::uint32_t const y) noexcept
         {
-            auto returnValue{false};
+            auto returnValue{true};
             EXPECT_FALSE(_calls->empty()) << "Unexpected additional call";
             if (!_calls->empty())
             {
@@ -301,7 +306,7 @@ struct Input_Emulator : public testing::Test
         template <typename T>
         bool check(std::uint8_t const id, T const t) noexcept
         {
-            auto returnValue{false};
+            auto returnValue{true};
             EXPECT_FALSE(_calls->empty()) << "Unexpected additional call";
             if (!_calls->empty())
             {
@@ -432,20 +437,100 @@ TEST_F(Input_Emulator, CommandToDoesNotBlockCaller)
 
 TEST_F(Input_Emulator, KeyDown)
 {
-    strategy.expectCalculateKeyDownTime(ms{2});
+    strategy.expectCalculateKeyDownTime(ms{2U});
     systemInterface.expectDown(Input::Key::Return, false);
     systemInterface.expectDown(Input::Key::Return, true);
     sut.down(Input::Key::Return);
-    std::this_thread::sleep_for(ms{10});
+    std::this_thread::sleep_for(ms{10U});
 }
 
 TEST_F(Input_Emulator, KeyUp)
 {
-    strategy.expectCalculateKeyUpTime(ms{2});
+    strategy.expectCalculateKeyUpTime(ms{2U});
     systemInterface.expectUp(Input::Key::Return, false);
     systemInterface.expectUp(Input::Key::Return, true);
     sut.up(Input::Key::Return);
-    std::this_thread::sleep_for(ms{10});
+    std::this_thread::sleep_for(ms{10U});
+}
+
+TEST_F(Input_Emulator, KeyPress)
+{
+    strategy.expectCalculateKeyDownTime(ms{2U});
+    strategy.expectCalculateKeyUpTime(ms{2U});
+    systemInterface.expectDown(Input::Key::Escape, true);
+    systemInterface.expectUp(Input::Key::Escape, true);
+    sut.press(Input::Key::Escape);
+    std::this_thread::sleep_for(ms{10U});
+}
+
+TEST_F(Input_Emulator, ButtonDown)
+{
+    strategy.expectCalculateButtonDownTime(ms{2U});
+    systemInterface.expectDown(Input::MouseButton::Left, false);
+    systemInterface.expectDown(Input::MouseButton::Left, true);
+    sut.down(Input::MouseButton::Left);
+    std::this_thread::sleep_for(ms{10U});
+}
+
+TEST_F(Input_Emulator, ButtonUp)
+{
+    strategy.expectCalculateButtonUpTime(ms{2U});
+    systemInterface.expectUp(Input::MouseButton::Middle, false);
+    systemInterface.expectUp(Input::MouseButton::Middle, true);
+    sut.up(Input::MouseButton::Middle);
+    std::this_thread::sleep_for(ms{10U});
+}
+
+TEST_F(Input_Emulator, Click)
+{
+    strategy.expectCalculateButtonDownTime(ms{2U});
+    strategy.expectCalculateButtonUpTime(ms{2U});
+    systemInterface.expectDown(Input::MouseButton::Right, true);
+    systemInterface.expectUp(Input::MouseButton::Right, true);
+    sut.click(Input::MouseButton::Right);
+    std::this_thread::sleep_for(ms{10U});
+}
+
+TEST_F(Input_Emulator, TurnMouseWheel)
+{
+    strategy.expectCalculateWheelSpeed(100U);
+    strategy.expectCalculateWheelResetTime(ms{2U});
+    strategy.expectCalculateWheelSteps(15, 20);
+
+    strategy.expectCalculateWheelSpeed(20U);
+    strategy.expectCalculateWheelResetTime(ms{8U});
+    strategy.expectCalculateWheelSteps(5, 5);
+
+    strategy.expectCalculateWheelSpeed(100U);
+    strategy.expectCalculateWheelResetTime(ms{10U});
+    strategy.expectCalculateWheelSteps(-15, -26);
+
+    strategy.expectCalculateWheelSpeed(20U);
+    strategy.expectCalculateWheelResetTime(ms{12U});
+    strategy.expectCalculateWheelSteps(-11, -11);
+
+    systemInterface.expectTurnMouseWheel(2, false);
+    for (auto i = 0U; i < 7U; ++i)
+    {
+        systemInterface.expectTurnMouseWheel(2, true);
+    }
+    for (auto i = 0U; i < 6U; ++i)
+    {
+        systemInterface.expectTurnMouseWheel(1, true);
+    }
+    for (auto i = 0U; i < 7U; ++i)
+    {
+        systemInterface.expectTurnMouseWheel(-2, true);
+    }
+    for (auto i = 0U; i < 12U; ++i)
+    {
+        systemInterface.expectTurnMouseWheel(-1, true);
+    }
+
+    sut.turnMouseWheel(20);
+    sut.turnMouseWheel(-26);
+    // TODO find a way to shutdown after the last expected command, check if there are still commands left in the queue
+    std::this_thread::sleep_for(ms{1500U});
 }
 
 TEST_F(Input_Emulator, ActionCountMouse) {}
@@ -462,19 +547,9 @@ TEST_F(Input_Emulator, Sync) {}
 
 TEST_F(Input_Emulator, MoveTo) {}
 
-TEST_F(Input_Emulator, Click) {}
-
 TEST_F(Input_Emulator, MoveToClick) {}
 
 TEST_F(Input_Emulator, DragAndDrop) {}
-
-TEST_F(Input_Emulator, ButtonDown) {}
-
-TEST_F(Input_Emulator, ButtonUp) {}
-
-TEST_F(Input_Emulator, TurnMouseWheel) {}
-
-TEST_F(Input_Emulator, KeyPress) {}
 
 TEST_F(Input_Emulator, Timing) {}
 

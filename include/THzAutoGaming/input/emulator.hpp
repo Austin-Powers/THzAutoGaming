@@ -228,11 +228,21 @@ public:
 
         while (steps != 0)
         {
-            auto const speed            = _strategy->calculateWheelSpeed();
-            auto const cooldown         = Ms{std::max(msPerS / speed, minInterval)};
-            auto const pushCooldown     = _strategy->calculateWheelResetTime() - cooldown;
-            auto const chunk            = _strategy->calculateWheelSteps(steps);
-            auto const stepsPerInterval = cooldown.count() == minInterval ? speed / (msPerS / minInterval) : 1;
+            auto const speed        = _strategy->calculateWheelSpeed();
+            auto const cooldown     = Ms{std::max(msPerS / speed, minInterval)};
+            auto const resetTime    = _strategy->calculateWheelResetTime();
+            auto const pushCooldown = (resetTime > cooldown) ? resetTime - cooldown : std::chrono::milliseconds{};
+            auto       chunk        = _strategy->calculateWheelSteps(steps);
+            if (std::abs(chunk) > std::abs(steps))
+            {
+                // prevent overshooting the target
+                chunk = steps;
+            }
+            auto stepsPerInterval = cooldown.count() == minInterval ? speed / (msPerS / minInterval) : 1;
+            if (steps < 0)
+            {
+                stepsPerInterval = -stepsPerInterval;
+            }
             addMouseAction(MouseAction::Type::Turn, cooldown, pushCooldown, chunk, stepsPerInterval);
             steps -= chunk;
         }
@@ -428,8 +438,8 @@ private:
     void addMouseAction(MouseAction::Type const type,
                         Ms const                cooldown,
                         Ms const                pushCooldown,
-                        std::uint16_t const     stepsLeft,
-                        std::uint16_t const     stepsPerInterval) noexcept
+                        std::int16_t const      stepsLeft,
+                        std::int16_t const      stepsPerInterval) noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
         _mouseActions.emplace_back();
@@ -520,7 +530,7 @@ private:
             return Point{static_cast<std::int32_t>(x), static_cast<std::int32_t>(y)};
         };
 
-        auto nextAction = _mouseActions.front();
+        auto &nextAction = _mouseActions.front();
         _nextMouseAction += nextAction.cooldown;
         switch (nextAction.type)
         {
@@ -590,7 +600,7 @@ private:
             break;
         }
         case MouseAction::Type::Turn: {
-            auto const steps = nextAction.stepsPerInterval < 0
+            auto const steps = (nextAction.stepsPerInterval < 0)
                                    ? std::max(nextAction.stepsLeft, nextAction.stepsPerInterval)
                                    : std::min(nextAction.stepsLeft, nextAction.stepsPerInterval);
             if (!_interface.turnMouseWheel(steps))
@@ -600,16 +610,17 @@ private:
             else
             {
                 nextAction.stepsLeft -= steps;
-                if (steps == 0)
+                if (nextAction.stepsLeft == 0)
                 {
                     _nextMouseAction += nextAction.pushCooldown;
-                    _keyboardActions.pop_front();
+                    _mouseActions.pop_front();
                 }
             }
             break;
         }
         default:
             // wait
+            _mouseActions.pop_front();
             break;
         }
     }
