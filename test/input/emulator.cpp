@@ -6,6 +6,7 @@
 #include <condition_variable>
 #include <cstdint>
 #include <gtest/gtest.h>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -203,11 +204,15 @@ struct Input_Emulator : public testing::Test
             };
         };
 
-        ~MockSystemInterface() noexcept { EXPECT_TRUE(_calls->empty()) << "Not all expected calls were made"; }
+        ~MockSystemInterface() noexcept { EXPECT_EQ(_calls->size(), 0U) << "Not all expected calls were made"; }
 
-        MockSystemInterface(std::deque<Call> &rCalls) noexcept : _calls{&rCalls} {}
+        MockSystemInterface(std::deque<Call> &rCalls, std::condition_variable &emptyCallsSignal) noexcept
+            : _calls{&rCalls}, _emptyCallsSignal{&emptyCallsSignal}
+        {}
 
-        MockSystemInterface(MockSystemInterface const &other) noexcept : _calls{other._calls} {}
+        MockSystemInterface(MockSystemInterface const &other) noexcept
+            : _calls{other._calls}, _emptyCallsSignal{other._emptyCallsSignal}
+        {}
 
         MockSystemInterface &operator=(MockSystemInterface const &other) noexcept
         {
@@ -244,7 +249,7 @@ struct Input_Emulator : public testing::Test
                 x           = _calls->front().x;
                 y           = _calls->front().y;
                 returnValue = _calls->front().returnValue;
-                _calls->pop_front();
+                popFrontCalls();
             }
             return returnValue;
         }
@@ -269,7 +274,7 @@ struct Input_Emulator : public testing::Test
                 EXPECT_EQ(_calls->front().x, x) << "Parameter wrong";
                 EXPECT_EQ(_calls->front().y, y) << "Parameter wrong";
                 returnValue = _calls->front().returnValue;
-                _calls->pop_front();
+                popFrontCalls();
             }
             return returnValue;
         }
@@ -313,7 +318,7 @@ struct Input_Emulator : public testing::Test
                 EXPECT_EQ(_calls->front().id, id) << "Unexpected function call";
                 EXPECT_EQ(getValue<T>(_calls->front()), t);
                 returnValue = _calls->front().returnValue;
-                _calls->pop_front();
+                popFrontCalls();
             }
             return returnValue;
         }
@@ -321,14 +326,39 @@ struct Input_Emulator : public testing::Test
         template <typename T>
         T &getValue(Call &call) noexcept = delete;
 
+        void popFrontCalls()
+        {
+            _calls->pop_front();
+            if (_calls->empty())
+            {
+                _emptyCallsSignal->notify_all();
+            }
+        }
+
         std::deque<Call> *_calls;
+
+        std::condition_variable *_emptyCallsSignal;
     };
 
     using TestEmulator = Input::Emulator<MockSystemInterface>;
 
+    void waitForSignal(ms const maxWaitTime = ms{1000U}) noexcept
+    {
+        std::unique_lock<std::mutex> lock{mutex};
+        emptyCallsSignal.wait_for(lock, maxWaitTime);
+        // wait for the call to finish
+        std::this_thread::sleep_for(ms{1U});
+        EXPECT_EQ(sut.actionCountMouse(), 0U);
+        EXPECT_EQ(sut.actionCountKeyboard(), 0U);
+    }
+
+    std::mutex mutex{};
+
+    std::condition_variable emptyCallsSignal{};
+
     std::deque<MockSystemInterface::Call> systemInterfaceCalls{};
 
-    MockSystemInterface systemInterface{systemInterfaceCalls};
+    MockSystemInterface systemInterface{systemInterfaceCalls, emptyCallsSignal};
 
     MockStrategy strategy{};
 
@@ -431,8 +461,7 @@ TEST_F(Input_Emulator, CommandToDoesNotBlockCaller)
     auto const endTime  = std::chrono::steady_clock::now();
     auto const duration = std::chrono::duration_cast<ms>(endTime - startTime);
     EXPECT_LE(duration.count(), 10U);
-    // let the commands be executed
-    std::this_thread::sleep_for(ms{10});
+    waitForSignal();
 }
 
 TEST_F(Input_Emulator, KeyDown)
@@ -441,7 +470,7 @@ TEST_F(Input_Emulator, KeyDown)
     systemInterface.expectDown(Input::Key::Return, false);
     systemInterface.expectDown(Input::Key::Return, true);
     sut.down(Input::Key::Return);
-    std::this_thread::sleep_for(ms{10U});
+    waitForSignal();
 }
 
 TEST_F(Input_Emulator, KeyUp)
@@ -450,7 +479,7 @@ TEST_F(Input_Emulator, KeyUp)
     systemInterface.expectUp(Input::Key::Return, false);
     systemInterface.expectUp(Input::Key::Return, true);
     sut.up(Input::Key::Return);
-    std::this_thread::sleep_for(ms{10U});
+    waitForSignal();
 }
 
 TEST_F(Input_Emulator, KeyPress)
@@ -460,7 +489,7 @@ TEST_F(Input_Emulator, KeyPress)
     systemInterface.expectDown(Input::Key::Escape, true);
     systemInterface.expectUp(Input::Key::Escape, true);
     sut.press(Input::Key::Escape);
-    std::this_thread::sleep_for(ms{10U});
+    waitForSignal();
 }
 
 TEST_F(Input_Emulator, ButtonDown)
@@ -469,7 +498,7 @@ TEST_F(Input_Emulator, ButtonDown)
     systemInterface.expectDown(Input::MouseButton::Left, false);
     systemInterface.expectDown(Input::MouseButton::Left, true);
     sut.down(Input::MouseButton::Left);
-    std::this_thread::sleep_for(ms{10U});
+    waitForSignal();
 }
 
 TEST_F(Input_Emulator, ButtonUp)
@@ -478,7 +507,7 @@ TEST_F(Input_Emulator, ButtonUp)
     systemInterface.expectUp(Input::MouseButton::Middle, false);
     systemInterface.expectUp(Input::MouseButton::Middle, true);
     sut.up(Input::MouseButton::Middle);
-    std::this_thread::sleep_for(ms{10U});
+    waitForSignal();
 }
 
 TEST_F(Input_Emulator, Click)
@@ -488,25 +517,25 @@ TEST_F(Input_Emulator, Click)
     systemInterface.expectDown(Input::MouseButton::Right, true);
     systemInterface.expectUp(Input::MouseButton::Right, true);
     sut.click(Input::MouseButton::Right);
-    std::this_thread::sleep_for(ms{10U});
+    waitForSignal();
 }
 
 TEST_F(Input_Emulator, TurnMouseWheel)
 {
     strategy.expectCalculateWheelSpeed(100U);
-    strategy.expectCalculateWheelResetTime(ms{2U});
+    strategy.expectCalculateWheelResetTime(ms{100U});
     strategy.expectCalculateWheelSteps(15, 20);
 
     strategy.expectCalculateWheelSpeed(20U);
-    strategy.expectCalculateWheelResetTime(ms{8U});
+    strategy.expectCalculateWheelResetTime(ms{80U});
     strategy.expectCalculateWheelSteps(5, 5);
 
     strategy.expectCalculateWheelSpeed(100U);
-    strategy.expectCalculateWheelResetTime(ms{10U});
+    strategy.expectCalculateWheelResetTime(ms{100U});
     strategy.expectCalculateWheelSteps(-15, -26);
 
     strategy.expectCalculateWheelSpeed(20U);
-    strategy.expectCalculateWheelResetTime(ms{12U});
+    strategy.expectCalculateWheelResetTime(ms{120U});
     strategy.expectCalculateWheelSteps(-11, -11);
 
     systemInterface.expectTurnMouseWheel(2, false);
@@ -529,9 +558,10 @@ TEST_F(Input_Emulator, TurnMouseWheel)
 
     sut.turnMouseWheel(20);
     sut.turnMouseWheel(-26);
-    // TODO find a way to shutdown after the last expected command, check if there are still commands left in the queue
-    std::this_thread::sleep_for(ms{1500U});
+    waitForSignal(ms{8000});
 }
+
+TEST_F(Input_Emulator, Timing) {}
 
 TEST_F(Input_Emulator, ActionCountMouse) {}
 
@@ -550,7 +580,5 @@ TEST_F(Input_Emulator, MoveTo) {}
 TEST_F(Input_Emulator, MoveToClick) {}
 
 TEST_F(Input_Emulator, DragAndDrop) {}
-
-TEST_F(Input_Emulator, Timing) {}
 
 } // namespace Terrahertz::UnitTests

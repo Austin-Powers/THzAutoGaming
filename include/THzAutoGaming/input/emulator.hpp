@@ -395,6 +395,10 @@ private:
                         MouseButton const       button = MouseButton::Left) noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
+        if (_mouseActions.empty())
+        {
+            _nextMouseAction = Clock::now();
+        }
         _mouseActions.emplace_back();
         auto &action    = _mouseActions.back();
         action.type     = type;
@@ -418,6 +422,10 @@ private:
                         double const            factor) noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
+        if (_mouseActions.empty())
+        {
+            _nextMouseAction = Clock::now();
+        }
         _mouseActions.emplace_back();
         auto &action    = _mouseActions.back();
         action.type     = type;
@@ -442,6 +450,10 @@ private:
                         std::int16_t const      stepsPerInterval) noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
+        if (_mouseActions.empty())
+        {
+            _nextMouseAction = Clock::now();
+        }
         _mouseActions.emplace_back();
         auto &action            = _mouseActions.back();
         action.type             = type;
@@ -459,6 +471,10 @@ private:
     void addKeyboardAction(KeyboardAction::Type const type, Ms const cooldown, Key const key = Key::Space) noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
+        if (_keyboardActions.empty())
+        {
+            _nextKeyboardAction = Clock::now();
+        }
         _keyboardActions.emplace_back(type, cooldown, key);
     }
 
