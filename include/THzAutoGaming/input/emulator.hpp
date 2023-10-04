@@ -565,8 +565,8 @@ private:
                 auto const dir    = currentPosition.direction(targetPosition);
                 auto const dist   = currentPosition.distance(targetPosition);
                 auto const speed  = nextAction.speed * (1 + (nextAction.factor * std::cos(dir)));
-                auto const speedX = speed * std::sin(dir);
-                auto const speedY = speed * std::cos(dir);
+                auto const speedX = speed * std::cos(dir);
+                auto const speedY = speed * std::sin(dir);
 
                 auto finished = false;
                 if (dist < speed)

@@ -431,6 +431,7 @@ TEST_F(Input_Emulator, IsMouseButtonDown)
     EXPECT_FALSE(sut.isDown(Input::MouseButton::Middle));
     systemInterface.expectIsDown(Input::MouseButton::Left, true);
     EXPECT_TRUE(sut.isDown(Input::MouseButton::Left));
+    EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
 TEST_F(Input_Emulator, IsKeyDown)
@@ -439,6 +440,7 @@ TEST_F(Input_Emulator, IsKeyDown)
     EXPECT_FALSE(sut.isDown(Input::Key::Backspace));
     systemInterface.expectIsDown(Input::Key::ControlKey, true);
     EXPECT_TRUE(sut.isDown(Input::Key::ControlKey));
+    EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
 TEST_F(Input_Emulator, IsKeyboardLockActive)
@@ -447,6 +449,7 @@ TEST_F(Input_Emulator, IsKeyboardLockActive)
     EXPECT_FALSE(sut.isActive(Input::KeyboardLock::Caps));
     systemInterface.expectIsActive(Input::KeyboardLock::Num, true);
     EXPECT_TRUE(sut.isActive(Input::KeyboardLock::Num));
+    EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
 TEST_F(Input_Emulator, CommandToDoesNotBlockCaller)
@@ -462,6 +465,7 @@ TEST_F(Input_Emulator, CommandToDoesNotBlockCaller)
     auto const duration = std::chrono::duration_cast<ms>(endTime - startTime);
     EXPECT_LE(duration.count(), 10U);
     waitForSignal();
+    EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
 TEST_F(Input_Emulator, KeyDown)
@@ -471,6 +475,7 @@ TEST_F(Input_Emulator, KeyDown)
     systemInterface.expectDown(Input::Key::Return, true);
     sut.down(Input::Key::Return);
     waitForSignal();
+    EXPECT_EQ(sut.errorCounter(), 1U);
 }
 
 TEST_F(Input_Emulator, KeyUp)
@@ -480,6 +485,7 @@ TEST_F(Input_Emulator, KeyUp)
     systemInterface.expectUp(Input::Key::Return, true);
     sut.up(Input::Key::Return);
     waitForSignal();
+    EXPECT_EQ(sut.errorCounter(), 1U);
 }
 
 TEST_F(Input_Emulator, KeyPress)
@@ -490,6 +496,7 @@ TEST_F(Input_Emulator, KeyPress)
     systemInterface.expectUp(Input::Key::Escape, true);
     sut.press(Input::Key::Escape);
     waitForSignal();
+    EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
 TEST_F(Input_Emulator, ButtonDown)
@@ -499,6 +506,7 @@ TEST_F(Input_Emulator, ButtonDown)
     systemInterface.expectDown(Input::MouseButton::Left, true);
     sut.down(Input::MouseButton::Left);
     waitForSignal();
+    EXPECT_EQ(sut.errorCounter(), 1U);
 }
 
 TEST_F(Input_Emulator, ButtonUp)
@@ -508,6 +516,7 @@ TEST_F(Input_Emulator, ButtonUp)
     systemInterface.expectUp(Input::MouseButton::Middle, true);
     sut.up(Input::MouseButton::Middle);
     waitForSignal();
+    EXPECT_EQ(sut.errorCounter(), 1U);
 }
 
 TEST_F(Input_Emulator, Click)
@@ -518,6 +527,7 @@ TEST_F(Input_Emulator, Click)
     systemInterface.expectUp(Input::MouseButton::Right, true);
     sut.click(Input::MouseButton::Right);
     waitForSignal();
+    EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
 TEST_F(Input_Emulator, TurnMouseWheel)
@@ -559,6 +569,49 @@ TEST_F(Input_Emulator, TurnMouseWheel)
     sut.turnMouseWheel(20);
     sut.turnMouseWheel(-26);
     waitForSignal(ms{8000});
+    EXPECT_EQ(sut.errorCounter(), 1U);
+}
+
+TEST_F(Input_Emulator, MoveToBaseCase)
+{
+    Rectangle const targetArea{50, 100, 100U, 150U};
+    auto const      target = targetArea.center();
+    auto const      factor = 1.0;
+    auto const      speed  = 100U;
+
+    strategy.expectCalculateTargetIn(target, targetArea);
+    strategy.expectCalculateSpeed(speed);
+    strategy.expectCalculateHorizontalSpeedFactor(factor);
+
+    std::uint32_t x{};
+    std::uint32_t y{};
+    systemInterface.expectGetCursorPosition(x, y, false);
+    for (auto i = 0U; i < 1000U; ++i)
+    {
+        systemInterface.expectGetCursorPosition(x, y, true);
+        auto const xDist     = target.x - x;
+        auto const yDist     = target.y - y;
+        auto const direction = std::atan2(yDist, xDist);
+        auto const distance  = std::sqrt((xDist * xDist) + (yDist * yDist));
+        auto const curSpeed  = (speed / 25) * (1 + ((factor - 1.0) * std::cos(direction)));
+        auto const speedX    = curSpeed * std::cos(direction);
+        auto const speedY    = curSpeed * std::sin(direction);
+        x += speedX;
+        y += speedY;
+        if ((x > target.x) || (y > target.y))
+        {
+            systemInterface.expectSetCursorPosition(target.x, target.y, true);
+            break;
+        }
+        else
+        {
+            systemInterface.expectSetCursorPosition(x, y, true);
+        }
+    }
+
+    sut.moveTo(targetArea);
+    waitForSignal(ms{3000});
+    EXPECT_EQ(sut.errorCounter(), 1U);
 }
 
 TEST_F(Input_Emulator, Timing) {}
@@ -574,8 +627,6 @@ TEST_F(Input_Emulator, Clear) {}
 TEST_F(Input_Emulator, Reset) {}
 
 TEST_F(Input_Emulator, Sync) {}
-
-TEST_F(Input_Emulator, MoveTo) {}
 
 TEST_F(Input_Emulator, MoveToClick) {}
 
