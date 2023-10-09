@@ -270,6 +270,7 @@ struct Input_Emulator : public testing::Test
             EXPECT_FALSE(_calls->empty()) << "Unexpected additional call";
             if (!_calls->empty())
             {
+                printf("Exp vs Act: X %d vs %d Y %d vs %d\n", _calls->front().x, x, _calls->front().y, y);
                 EXPECT_EQ(_calls->front().id, 5U) << "Unexpected function call";
                 EXPECT_EQ(_calls->front().x, x) << "Parameter wrong";
                 EXPECT_EQ(_calls->front().y, y) << "Parameter wrong";
@@ -341,6 +342,11 @@ struct Input_Emulator : public testing::Test
     };
 
     using TestEmulator = Input::Emulator<MockSystemInterface>;
+
+    static Point toPoint(std::uint32_t const x, std::uint32_t const y) noexcept
+    {
+        return Point{static_cast<Point::Coordinate>(x), static_cast<Point::Coordinate>(y)};
+    }
 
     void waitForSignal(ms const maxWaitTime = ms{1000U}) noexcept
     {
@@ -583,29 +589,23 @@ TEST_F(Input_Emulator, MoveToBaseCase)
     strategy.expectCalculateSpeed(speed);
     strategy.expectCalculateHorizontalSpeedFactor(factor);
 
-    std::uint32_t x{};
-    std::uint32_t y{};
-    systemInterface.expectGetCursorPosition(x, y, false);
+    Point current{};
+    systemInterface.expectGetCursorPosition(current.x, current.y, false);
     for (auto i = 0U; i < 1000U; ++i)
     {
-        systemInterface.expectGetCursorPosition(x, y, true);
-        auto const xDist     = target.x - x;
-        auto const yDist     = target.y - y;
-        auto const direction = std::atan2(yDist, xDist);
-        auto const distance  = std::sqrt((xDist * xDist) + (yDist * yDist));
+        systemInterface.expectGetCursorPosition(current.x, current.y, true);
+        auto const direction = current.direction(target);
+        auto const distance  = current.distance(target);
         auto const curSpeed  = (speed / 25) * (1 + ((factor - 1.0) * std::cos(direction)));
-        auto const speedX    = curSpeed * std::cos(direction);
-        auto const speedY    = curSpeed * std::sin(direction);
-        x += speedX;
-        y += speedY;
-        if ((x > target.x) || (y > target.y))
+        current              = current.angularShift(direction, curSpeed);
+        if ((current.x >= target.x) && (current.y >= target.y))
         {
             systemInterface.expectSetCursorPosition(target.x, target.y, true);
             break;
         }
         else
         {
-            systemInterface.expectSetCursorPosition(x, y, true);
+            systemInterface.expectSetCursorPosition(current.x, current.y, true);
         }
     }
 
@@ -613,6 +613,8 @@ TEST_F(Input_Emulator, MoveToBaseCase)
     waitForSignal(ms{3000});
     EXPECT_EQ(sut.errorCounter(), 1U);
 }
+
+TEST_F(Input_Emulator, MoveToSlow) {}
 
 TEST_F(Input_Emulator, Timing) {}
 

@@ -543,7 +543,7 @@ private:
     void performNextMouseAction() noexcept
     {
         auto const toPoint = [](std::uint32_t const x, std::uint32_t const y) noexcept -> Point {
-            return Point{static_cast<std::int32_t>(x), static_cast<std::int32_t>(y)};
+            return Point{static_cast<Point::Coordinate>(x), static_cast<Point::Coordinate>(y)};
         };
 
         auto &nextAction = _mouseActions.front();
@@ -562,31 +562,29 @@ private:
                 auto const currentPosition = toPoint(x, y);
                 auto const targetPosition  = toPoint(nextAction.x, nextAction.y);
 
-                auto const dir    = currentPosition.direction(targetPosition);
-                auto const dist   = currentPosition.distance(targetPosition);
-                auto const speed  = nextAction.speed * (1 + (nextAction.factor * std::cos(dir)));
-                auto const speedX = speed * std::cos(dir);
-                auto const speedY = speed * std::sin(dir);
+                auto const dir   = currentPosition.direction(targetPosition);
+                auto const dist  = currentPosition.distance(targetPosition);
+                auto const speed = nextAction.speed * (1 + (nextAction.factor * std::cos(dir)));
 
-                auto finished = false;
                 if (dist < speed)
                 {
                     // snap to target if we are almost there
-                    x        = targetPosition.x;
-                    y        = targetPosition.y;
-                    finished = true;
+                    x = targetPosition.x;
+                    y = targetPosition.y;
                 }
                 else
                 {
-                    x = static_cast<std::uint32_t>(x + speedX);
-                    y = static_cast<std::uint32_t>(y + speedY);
+                    auto const nextPosition = currentPosition.angularShift(dir, speed);
+
+                    x = static_cast<std::uint32_t>(nextPosition.x);
+                    y = static_cast<std::uint32_t>(nextPosition.y);
                 }
 
                 if (!_interface.setCursorPosition(x, y))
                 {
                     ++_errorCounter;
                 }
-                else if (finished)
+                else if ((x == targetPosition.x) && (y == targetPosition.y))
                 {
                     _mouseActions.pop_front();
                 }

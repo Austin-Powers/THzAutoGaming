@@ -21,7 +21,7 @@ FetchContent_Declare(
 FetchContent_Declare(
 	THzCommon
 	GIT_REPOSITORY https://github.com/Austin-Powers/THzCommon
-	GIT_TAG        5be2421d2426b4c94ecae46b5f717e7b976077bb # latest 19.09.23
+	GIT_TAG        548d42fa83bbb008ea5a1a29ab87e09e28cffabd # latest 09.10.23
 )
 FetchContent_Declare(
 	THzImage
