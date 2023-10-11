@@ -270,7 +270,6 @@ struct Input_Emulator : public testing::Test
             EXPECT_FALSE(_calls->empty()) << "Unexpected additional call";
             if (!_calls->empty())
             {
-                printf("Exp vs Act: X %d vs %d Y %d vs %d\n", _calls->front().x, x, _calls->front().y, y);
                 EXPECT_EQ(_calls->front().id, 5U) << "Unexpected function call";
                 EXPECT_EQ(_calls->front().x, x) << "Parameter wrong";
                 EXPECT_EQ(_calls->front().y, y) << "Parameter wrong";
@@ -661,6 +660,31 @@ TEST_F(Input_Emulator, MoveToMovesAtLeastOnePixelPerStep)
     EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
+TEST_F(Input_Emulator, MoveToClick)
+{
+    Rectangle const          targetArea{100, 100, 50U, 50U};
+    Input::MouseButton const button{Input::MouseButton::XButton1};
+
+    auto const target = targetArea.center();
+    auto const factor = 2.0;
+    auto const speed  = 10'000U;
+
+    strategy.expectCalculateTargetIn(target, targetArea);
+    strategy.expectCalculateSpeed(speed);
+    strategy.expectCalculateHorizontalSpeedFactor(factor);
+    strategy.expectCalculateButtonDownTime(ms{10});
+    strategy.expectCalculateButtonUpTime(ms{10});
+
+    systemInterface.expectGetCursorPosition(200U, 200U, true);
+    systemInterface.expectSetCursorPosition(target.x, target.y, true);
+    systemInterface.expectDown(button, true);
+    systemInterface.expectUp(button, true);
+
+    sut.click(button, targetArea);
+    waitForSignal(ms{1000});
+    EXPECT_EQ(sut.errorCounter(), 0U);
+}
+
 TEST_F(Input_Emulator, Timing) {}
 
 TEST_F(Input_Emulator, ActionCountMouse) {}
@@ -674,8 +698,6 @@ TEST_F(Input_Emulator, Clear) {}
 TEST_F(Input_Emulator, Reset) {}
 
 TEST_F(Input_Emulator, Sync) {}
-
-TEST_F(Input_Emulator, MoveToClick) {}
 
 TEST_F(Input_Emulator, DragAndDrop) {}
 
