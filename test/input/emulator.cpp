@@ -662,12 +662,11 @@ TEST_F(Input_Emulator, MoveToMovesAtLeastOnePixelPerStep)
 
 TEST_F(Input_Emulator, MoveToClick)
 {
-    Rectangle const          targetArea{100, 100, 50U, 50U};
-    Input::MouseButton const button{Input::MouseButton::XButton1};
-
-    auto const target = targetArea.center();
-    auto const factor = 2.0;
-    auto const speed  = 10'000U;
+    Rectangle const targetArea{100, 100, 50U, 50U};
+    auto const      button = Input::MouseButton::XButton1;
+    auto const      target = targetArea.center();
+    auto const      factor = 2.0;
+    auto const      speed  = 10'000U;
 
     strategy.expectCalculateTargetIn(target, targetArea);
     strategy.expectCalculateSpeed(speed);
@@ -685,6 +684,37 @@ TEST_F(Input_Emulator, MoveToClick)
     EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
+TEST_F(Input_Emulator, DragAndDrop)
+{
+    Rectangle const startArea{150, 100, 50U, 50U};
+    Rectangle const stopArea{250, 100, 25U, 25U};
+    auto const      button = Input::MouseButton::XButton2;
+    auto const      start  = startArea.center();
+    auto const      stop   = stopArea.center();
+    auto const      factor = 0.3;
+    auto const      speed  = 10'000U;
+
+    strategy.expectCalculateTargetIn(start, startArea);
+    strategy.expectCalculateSpeed(speed);
+    strategy.expectCalculateHorizontalSpeedFactor(factor);
+    strategy.expectCalculateButtonDownTime(ms{10});
+    strategy.expectCalculateTargetIn(stop, stopArea);
+    strategy.expectCalculateSpeed(speed);
+    strategy.expectCalculateHorizontalSpeedFactor(factor);
+    strategy.expectCalculateButtonUpTime(ms{10});
+
+    systemInterface.expectGetCursorPosition(stop.x, stop.y, true);
+    systemInterface.expectSetCursorPosition(start.x, start.y, true);
+    systemInterface.expectDown(button, true);
+    systemInterface.expectGetCursorPosition(start.x, start.y, true);
+    systemInterface.expectSetCursorPosition(stop.x, stop.y, true);
+    systemInterface.expectUp(button, true);
+
+    sut.dragAndDrop(button, startArea, stopArea);
+    waitForSignal(ms{2000});
+    EXPECT_EQ(sut.errorCounter(), 0U);
+}
+
 TEST_F(Input_Emulator, Timing) {}
 
 TEST_F(Input_Emulator, ActionCountMouse) {}
@@ -698,7 +728,5 @@ TEST_F(Input_Emulator, Clear) {}
 TEST_F(Input_Emulator, Reset) {}
 
 TEST_F(Input_Emulator, Sync) {}
-
-TEST_F(Input_Emulator, DragAndDrop) {}
 
 } // namespace Terrahertz::UnitTests
