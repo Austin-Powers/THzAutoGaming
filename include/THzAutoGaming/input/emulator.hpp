@@ -545,6 +545,23 @@ private:
         auto const toPoint = [](std::uint32_t const x, std::uint32_t const y) noexcept -> Point {
             return Point{static_cast<Point::Coordinate>(x), static_cast<Point::Coordinate>(y)};
         };
+        auto const update = [](std::uint32_t const current,
+                               std::int32_t const  next,
+                               std::uint32_t const target) noexcept -> std::uint32_t {
+            auto n = static_cast<std::uint32_t>(next);
+            if ((current == n) && (current != target))
+            {
+                if (n < target)
+                {
+                    ++n;
+                }
+                else
+                {
+                    --n;
+                }
+            }
+            return n;
+        };
 
         auto &nextAction = _mouseActions.front();
         _nextMouseAction += nextAction.cooldown;
@@ -576,8 +593,8 @@ private:
                 {
                     auto const nextPosition = currentPosition.angularShift(dir, speed);
 
-                    x = static_cast<std::uint32_t>(nextPosition.x);
-                    y = static_cast<std::uint32_t>(nextPosition.y);
+                    x = update(currentPosition.x, nextPosition.x, targetPosition.x);
+                    y = update(currentPosition.y, nextPosition.y, targetPosition.y);
                 }
 
                 if (!_interface.setCursorPosition(x, y))

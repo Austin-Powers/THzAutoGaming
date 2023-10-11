@@ -614,7 +614,52 @@ TEST_F(Input_Emulator, MoveToBaseCase)
     EXPECT_EQ(sut.errorCounter(), 1U);
 }
 
-TEST_F(Input_Emulator, MoveToSlow) {}
+TEST_F(Input_Emulator, MoveToMovesAtLeastOnePixelPerStep)
+{
+    Rectangle const targetArea{10, 20, 10U, 10U};
+    auto const      target = targetArea.center();
+    auto const      factor = 1.0;
+    auto const      speed  = 1U;
+
+    strategy.expectCalculateTargetIn(target, targetArea);
+    strategy.expectCalculateSpeed(speed);
+    strategy.expectCalculateHorizontalSpeedFactor(factor);
+
+    Point current{};
+    while (current.y < target.y)
+    {
+        systemInterface.expectGetCursorPosition(current.x, current.y, true);
+        ++current.y;
+        if (current.x < target.x)
+        {
+            ++current.x;
+        }
+        systemInterface.expectSetCursorPosition(current.x, current.y, true);
+    }
+
+    sut.moveTo(targetArea);
+    waitForSignal(ms{3000});
+
+    strategy.expectCalculateTargetIn(target, targetArea);
+    strategy.expectCalculateSpeed(speed);
+    strategy.expectCalculateHorizontalSpeedFactor(factor);
+
+    current = Point{30, 50};
+    while (current.y > target.y)
+    {
+        systemInterface.expectGetCursorPosition(current.x, current.y, true);
+        --current.y;
+        if (current.x > target.x)
+        {
+            --current.x;
+        }
+        systemInterface.expectSetCursorPosition(current.x, current.y, true);
+    }
+
+    sut.moveTo(targetArea);
+    waitForSignal(ms{3000});
+    EXPECT_EQ(sut.errorCounter(), 0U);
+}
 
 TEST_F(Input_Emulator, Timing) {}
 
