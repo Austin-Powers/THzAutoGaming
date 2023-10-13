@@ -538,19 +538,19 @@ TEST_F(Input_Emulator, Click)
 TEST_F(Input_Emulator, TurnMouseWheel)
 {
     strategy.expectCalculateWheelSpeed(100U);
-    strategy.expectCalculateWheelResetTime(ms{100U});
+    strategy.expectCalculateWheelResetTime(ms{50U});
     strategy.expectCalculateWheelSteps(15, 20);
 
     strategy.expectCalculateWheelSpeed(20U);
-    strategy.expectCalculateWheelResetTime(ms{80U});
+    strategy.expectCalculateWheelResetTime(ms{40U});
     strategy.expectCalculateWheelSteps(5, 5);
 
     strategy.expectCalculateWheelSpeed(100U);
-    strategy.expectCalculateWheelResetTime(ms{100U});
+    strategy.expectCalculateWheelResetTime(ms{50U});
     strategy.expectCalculateWheelSteps(-15, -26);
 
     strategy.expectCalculateWheelSpeed(20U);
-    strategy.expectCalculateWheelResetTime(ms{120U});
+    strategy.expectCalculateWheelResetTime(ms{60U});
     strategy.expectCalculateWheelSteps(-11, -11);
 
     systemInterface.expectTurnMouseWheel(2, false);
@@ -573,7 +573,7 @@ TEST_F(Input_Emulator, TurnMouseWheel)
 
     sut.turnMouseWheel(20);
     sut.turnMouseWheel(-26);
-    waitForSignal(ms{8000});
+    waitForSignal(ms{4000});
     EXPECT_EQ(sut.errorCounter(), 1U);
 }
 
@@ -582,7 +582,7 @@ TEST_F(Input_Emulator, MoveToBaseCase)
     Rectangle const targetArea{50, 100, 100U, 150U};
     auto const      target = targetArea.center();
     auto const      factor = 1.0;
-    auto const      speed  = 100U;
+    auto const      speed  = 300U;
 
     strategy.expectCalculateTargetIn(target, targetArea);
     strategy.expectCalculateSpeed(speed);
@@ -618,7 +618,7 @@ TEST_F(Input_Emulator, MoveToNegativeCase)
     Rectangle const targetArea{50, 100, 100U, 150U};
     auto const      target = targetArea.center();
     auto const      factor = 1.0;
-    auto const      speed  = 100U;
+    auto const      speed  = 300U;
 
     strategy.expectCalculateTargetIn(target, targetArea);
     strategy.expectCalculateSpeed(speed);
@@ -651,7 +651,7 @@ TEST_F(Input_Emulator, MoveToNegativeCase)
 
 TEST_F(Input_Emulator, MoveToMovesAtLeastOnePixelPerStep)
 {
-    Rectangle const targetArea{10, 20, 10U, 10U};
+    Rectangle const targetArea{5, 10, 8U, 8U};
     auto const      target = targetArea.center();
     auto const      factor = 1.0;
     auto const      speed  = 1U;
