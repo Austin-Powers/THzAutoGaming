@@ -154,8 +154,13 @@ public:
     void sync() noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
-        _mouseActions.emplace_back(MouseAction::Type::Sync, Ms{0U}, MouseButton::Left, 0U, 0U, 0.0, 0.0);
-        _keyboardActions.emplace_back(KeyboardAction::Type::Sync, Ms{0U}, Key::Return);
+
+        MouseAction mouseAction{};
+        mouseAction.type = MouseAction::Type::Sync;
+        _mouseActions.emplace_back(mouseAction);
+        KeyboardAction keyboardAction{};
+        keyboardAction.type = KeyboardAction::Type::Sync;
+        _keyboardActions.emplace_back(keyboardAction);
     }
 
     /// @brief Adds a move command to the mouse queue.
@@ -493,13 +498,16 @@ private:
             // we need to check again as queues might have been cleared in the mean time
             if (!_mouseActions.empty() && !_keyboardActions.empty())
             {
-                if ((_mouseActions[0U].type == MouseAction::Type::Sync) ||
+                if ((_mouseActions[0U].type == MouseAction::Type::Sync) &&
                     (_keyboardActions[0U].type == KeyboardAction::Type::Sync))
                 {
                     _mouseActions.pop_front();
                     _keyboardActions.pop_front();
+                    // we need to check again if queues are not empty
+                    continue;
                 }
-                if (_nextMouseAction < _nextKeyboardAction)
+                if ((_keyboardActions[0U].type == KeyboardAction::Type::Sync) ||
+                    (_nextMouseAction < _nextKeyboardAction))
                 {
                     performNextMouseAction();
                 }
@@ -685,6 +693,7 @@ private:
             break;
         default:
             // wait
+            _keyboardActions.pop_front();
             break;
         }
     }

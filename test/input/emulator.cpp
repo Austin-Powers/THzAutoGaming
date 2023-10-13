@@ -613,6 +613,42 @@ TEST_F(Input_Emulator, MoveToBaseCase)
     EXPECT_EQ(sut.errorCounter(), 1U);
 }
 
+TEST_F(Input_Emulator, MoveToNegativeCase)
+{
+    Rectangle const targetArea{50, 100, 100U, 150U};
+    auto const      target = targetArea.center();
+    auto const      factor = 1.0;
+    auto const      speed  = 100U;
+
+    strategy.expectCalculateTargetIn(target, targetArea);
+    strategy.expectCalculateSpeed(speed);
+    strategy.expectCalculateHorizontalSpeedFactor(factor);
+
+    Point current{target.x * 2, target.y * 2};
+    systemInterface.expectGetCursorPosition(current.x, current.y, false);
+    for (auto i = 0U; i < 1000U; ++i)
+    {
+        systemInterface.expectGetCursorPosition(current.x, current.y, true);
+        auto const direction = current.direction(target);
+        auto const distance  = current.distance(target);
+        auto const curSpeed  = (speed / 25) * (1 + ((factor - 1.0) * std::cos(direction)));
+        current              = current.angularShift(direction, curSpeed);
+        if ((current.x <= target.x) && (current.y <= target.y))
+        {
+            systemInterface.expectSetCursorPosition(target.x, target.y, true);
+            break;
+        }
+        else
+        {
+            systemInterface.expectSetCursorPosition(current.x, current.y, true);
+        }
+    }
+
+    sut.moveTo(targetArea);
+    waitForSignal(ms{3000});
+    EXPECT_EQ(sut.errorCounter(), 1U);
+}
+
 TEST_F(Input_Emulator, MoveToMovesAtLeastOnePixelPerStep)
 {
     Rectangle const targetArea{10, 20, 10U, 10U};
@@ -715,18 +751,92 @@ TEST_F(Input_Emulator, DragAndDrop)
     EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
-TEST_F(Input_Emulator, Timing) {}
+TEST_F(Input_Emulator, Timing)
+{
+    auto const      button = Input::MouseButton::Left;
+    auto const      key    = Input::Key::Return;
+    Rectangle const targetArea{50, 50, 25U, 25U};
+    auto const      target = targetArea.center();
+    auto const      speed  = 500U;
+    auto const      factor = 1.0;
+
+    strategy.expectCalculateButtonDownTime(ms{30});
+    strategy.expectCalculateButtonUpTime(ms{20});
+    strategy.expectCalculateWheelSpeed(100U);
+    strategy.expectCalculateWheelResetTime(ms{50U});
+    strategy.expectCalculateWheelSteps(16, 30);
+    strategy.expectCalculateWheelSpeed(50U);
+    strategy.expectCalculateWheelResetTime(ms{80U});
+    strategy.expectCalculateWheelSteps(14, 14);
+    strategy.expectCalculateTargetIn(target, targetArea);
+    strategy.expectCalculateSpeed(speed);
+    strategy.expectCalculateHorizontalSpeedFactor(factor);
+    strategy.expectCalculateButtonDownTime(ms{40});
+    strategy.expectCalculateButtonUpTime(ms{10});
+    strategy.expectCalculateKeyDownTime(ms{50});
+    strategy.expectCalculateKeyUpTime(ms{20});
+    strategy.expectCalculateKeyDownTime(ms{30});
+    strategy.expectCalculateKeyUpTime(ms{40});
+
+    systemInterface.expectDown(button, true);
+    systemInterface.expectUp(button, true);
+    for (auto i = 0U; i < 8U; ++i)
+    {
+        systemInterface.expectTurnMouseWheel(2, true);
+    }
+    for (auto i = 0U; i < 14U; ++i)
+    {
+        systemInterface.expectTurnMouseWheel(1, true);
+    }
+    Point current{100, 100};
+    for (auto i = 0U; i < 32U; ++i)
+    {
+        systemInterface.expectGetCursorPosition(current.x, current.y, true);
+        auto const direction = current.direction(target);
+        auto const distance  = current.distance(target);
+        auto const curSpeed  = (speed / 25) * (1 + ((factor - 1.0) * std::cos(direction)));
+        current              = current.angularShift(direction, curSpeed);
+        if ((current.x <= target.x) && (current.y <= target.y))
+        {
+            systemInterface.expectSetCursorPosition(target.x, target.y, true);
+            break;
+        }
+        else
+        {
+            systemInterface.expectSetCursorPosition(current.x, current.y, true);
+        }
+    }
+    systemInterface.expectDown(button, true);
+    systemInterface.expectUp(button, true);
+    systemInterface.expectDown(key, true);
+    systemInterface.expectUp(key, true);
+    systemInterface.expectDown(key, true);
+    systemInterface.expectUp(key, true);
+
+    sut.down(button);
+    sut.up(button);
+    sut.turnMouseWheel(30U);
+    sut.moveTo(targetArea);
+    sut.down(button);
+    sut.wait(true, ms{20});
+    sut.up(button);
+    sut.sync();
+    sut.down(key);
+    sut.up(key);
+    sut.down(key);
+    sut.wait(false, ms{20});
+    sut.up(key);
+
+    waitForSignal(ms{4000});
+    EXPECT_EQ(sut.errorCounter(), 0U);
+}
 
 TEST_F(Input_Emulator, ActionCountMouse) {}
 
 TEST_F(Input_Emulator, ActionCountKeyboard) {}
 
-TEST_F(Input_Emulator, Wait) {}
-
 TEST_F(Input_Emulator, Clear) {}
 
 TEST_F(Input_Emulator, Reset) {}
-
-TEST_F(Input_Emulator, Sync) {}
 
 } // namespace Terrahertz::UnitTests
