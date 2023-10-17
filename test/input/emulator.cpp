@@ -10,11 +10,16 @@
 #include <thread>
 #include <vector>
 
+#define NOW_MS                                                                                                         \
+    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()
+
 namespace Terrahertz::UnitTests {
 
 struct Input_Emulator : public testing::Test
 {
     using ms = std::chrono::milliseconds;
+
+    using TimeVector = std::vector<std::chrono::system_clock::time_point>;
 
     struct MockStrategy : public Input::IDeviationStrategy
     {
@@ -204,14 +209,14 @@ struct Input_Emulator : public testing::Test
             };
         };
 
-        ~MockSystemInterface() noexcept { EXPECT_EQ(_calls->size(), 0U) << "Not all expected calls were made"; }
-
-        MockSystemInterface(std::deque<Call> &rCalls, std::condition_variable &emptyCallsSignal) noexcept
-            : _calls{&rCalls}, _emptyCallsSignal{&emptyCallsSignal}
+        MockSystemInterface(std::deque<Call>        &rCalls,
+                            std::condition_variable &emptyCallsSignal,
+                            TimeVector              &timePoints) noexcept
+            : _calls{&rCalls}, _emptyCallsSignal{&emptyCallsSignal}, _timePoints{&timePoints}
         {}
 
         MockSystemInterface(MockSystemInterface const &other) noexcept
-            : _calls{other._calls}, _emptyCallsSignal{other._emptyCallsSignal}
+            : _calls{other._calls}, _emptyCallsSignal{other._emptyCallsSignal}, _timePoints{other._timePoints}
         {}
 
         MockSystemInterface &operator=(MockSystemInterface const &other) noexcept
@@ -219,6 +224,8 @@ struct Input_Emulator : public testing::Test
             _calls = other._calls;
             return *this;
         }
+
+        ~MockSystemInterface() noexcept { EXPECT_EQ(_calls->size(), 0U) << "Not all expected calls were made"; }
 
         void expectIsDown(Input::MouseButton const mb, bool returnValue) noexcept { setup(1U, mb, returnValue); }
         bool isDown(Input::MouseButton const mb) noexcept { return check(1U, mb); }
@@ -266,6 +273,7 @@ struct Input_Emulator : public testing::Test
         }
         bool setCursorPosition(std::uint32_t const x, std::uint32_t const y) noexcept
         {
+            // std::cout << "setCursorPosition " << NOW_MS << std::endl;
             auto returnValue{true};
             EXPECT_FALSE(_calls->empty()) << "Unexpected additional call";
             if (!_calls->empty())
@@ -274,6 +282,7 @@ struct Input_Emulator : public testing::Test
                 EXPECT_EQ(_calls->front().x, x) << "Parameter wrong";
                 EXPECT_EQ(_calls->front().y, y) << "Parameter wrong";
                 returnValue = _calls->front().returnValue;
+                addTimePoint();
                 popFrontCalls();
             }
             return returnValue;
@@ -283,19 +292,39 @@ struct Input_Emulator : public testing::Test
         {
             setup(6U, steps, returnValue);
         }
-        bool turnMouseWheel(std::int16_t const steps) noexcept { return check(6U, steps); }
+        bool turnMouseWheel(std::int16_t const steps) noexcept
+        {
+            // std::cout << "turnMouseWheel " << NOW_MS << std::endl;
+            return check(6U, steps);
+        }
 
         void expectDown(Input::MouseButton const mb, bool returnValue) noexcept { setup(7U, mb, returnValue); }
-        bool down(Input::MouseButton const mb) noexcept { return check(7U, mb); }
+        bool down(Input::MouseButton const mb) noexcept
+        {
+            // std::cout << "button down " << NOW_MS << std::endl;
+            return check(7U, mb);
+        }
 
         void expectUp(Input::MouseButton const mb, bool returnValue) noexcept { setup(8U, mb, returnValue); }
-        bool up(Input::MouseButton const mb) noexcept { return check(8U, mb); }
+        bool up(Input::MouseButton const mb) noexcept
+        {
+            // std::cout << "button up   " << NOW_MS << std::endl;
+            return check(8U, mb);
+        }
 
         void expectDown(Input::Key const k, bool returnValue) noexcept { setup(9U, k, returnValue); }
-        bool down(Input::Key const k) noexcept { return check(9U, k); }
+        bool down(Input::Key const k) noexcept
+        {
+            // std::cout << "key down " << NOW_MS << std::endl;
+            return check(9U, k);
+        }
 
         void expectUp(Input::Key const k, bool returnValue) noexcept { setup(10U, k, returnValue); }
-        bool up(Input::Key const k) noexcept { return check(10U, k); }
+        bool up(Input::Key const k) noexcept
+        {
+            // std::cout << "key up   " << NOW_MS << std::endl;
+            return check(10U, k);
+        }
 
     private:
         template <typename T>
@@ -318,6 +347,7 @@ struct Input_Emulator : public testing::Test
                 EXPECT_EQ(_calls->front().id, id) << "Unexpected function call";
                 EXPECT_EQ(getValue<T>(_calls->front()), t);
                 returnValue = _calls->front().returnValue;
+                addTimePoint();
                 popFrontCalls();
             }
             return returnValue;
@@ -335,9 +365,13 @@ struct Input_Emulator : public testing::Test
             }
         }
 
+        void addTimePoint() noexcept { _timePoints->emplace_back(std::chrono::system_clock::now()); }
+
         std::deque<Call> *_calls;
 
         std::condition_variable *_emptyCallsSignal;
+
+        TimeVector *_timePoints{};
     };
 
     using TestEmulator = Input::Emulator<MockSystemInterface>;
@@ -363,7 +397,9 @@ struct Input_Emulator : public testing::Test
 
     std::deque<MockSystemInterface::Call> systemInterfaceCalls{};
 
-    MockSystemInterface systemInterface{systemInterfaceCalls, emptyCallsSignal};
+    TimeVector timePoints{};
+
+    MockSystemInterface systemInterface{systemInterfaceCalls, emptyCallsSignal, timePoints};
 
     MockStrategy strategy{};
 
@@ -829,6 +865,45 @@ TEST_F(Input_Emulator, Timing)
 
     waitForSignal(ms{4000});
     EXPECT_EQ(sut.errorCounter(), 0U);
+    ASSERT_EQ(timePoints.size(), 33U);
+
+    // evaluate timing
+    auto const      maxDeviationMs = 5;
+    std::vector<ms> timings{};
+    for (auto i = 1U; i < timePoints.size(); ++i)
+    {
+        timings.emplace_back(std::chrono::duration_cast<ms>(timePoints[i] - timePoints[0U]));
+        EXPECT_NE(timings.back().count(), 0U);
+    }
+
+    auto       expectedTimeMs = 0U;
+    auto const checkTiming = [&](ms const &actualTime, std::uint32_t const offset, char const *const action) noexcept {
+        expectedTimeMs += offset;
+        EXPECT_GE(actualTime.count(), (expectedTimeMs - maxDeviationMs)) << action << ": performed too early";
+        EXPECT_LE(actualTime.count(), (expectedTimeMs + maxDeviationMs)) << action << ": performed too late";
+    };
+
+    checkTiming(timings[0U], 30U, "button down 1");
+    checkTiming(timings[1U], 20U, "button up 1");
+    for (auto i = 0U; i < 7U; ++i)
+    {
+        checkTiming(timings[2ULL + i], 20U, "wheel turn 1");
+    }
+    checkTiming(timings[9U], 50U, "wheel turn 1 + cooldown");
+    for (auto i = 0U; i < 13U; ++i)
+    {
+        checkTiming(timings[10ULL + i], 20U, "wheel turn 2");
+    }
+    checkTiming(timings[23U], 80U, "wheel turn 2 + cooldown");
+    checkTiming(timings[24U], 40U, "moveTo step 1");
+    checkTiming(timings[25U], 40U, "moveTo step 2");
+    checkTiming(timings[26U], 40U, "moveTo step 3");
+    checkTiming(timings[27U], 60U, "button down 2 + wait");
+    checkTiming(timings[28U], 0U, "button up 2"); // this switches to keyboard so there is no wait time
+    checkTiming(timings[29U], 50U, "key down 1");
+    checkTiming(timings[30U], 20U, "key up 1");
+    checkTiming(timings[31U], 50U, "key down 2 + wait");
+    // key up 2 is what create the last measurement
 }
 
 TEST_F(Input_Emulator, ActionCountMouse) {}

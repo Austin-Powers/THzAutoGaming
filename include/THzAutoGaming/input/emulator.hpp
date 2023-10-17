@@ -403,6 +403,7 @@ private:
         if (_mouseActions.empty())
         {
             _nextMouseAction = Clock::now();
+            _worker.wakeUp.notify_one();
         }
         _mouseActions.emplace_back();
         auto &action    = _mouseActions.back();
@@ -430,6 +431,7 @@ private:
         if (_mouseActions.empty())
         {
             _nextMouseAction = Clock::now();
+            _worker.wakeUp.notify_one();
         }
         _mouseActions.emplace_back();
         auto &action    = _mouseActions.back();
@@ -458,6 +460,7 @@ private:
         if (_mouseActions.empty())
         {
             _nextMouseAction = Clock::now();
+            _worker.wakeUp.notify_one();
         }
         _mouseActions.emplace_back();
         auto &action            = _mouseActions.back();
@@ -479,6 +482,7 @@ private:
         if (_keyboardActions.empty())
         {
             _nextKeyboardAction = Clock::now();
+            _worker.wakeUp.notify_one();
         }
         _keyboardActions.emplace_back(type, cooldown, key);
     }
@@ -503,6 +507,8 @@ private:
                 {
                     _mouseActions.pop_front();
                     _keyboardActions.pop_front();
+                    _nextMouseAction    = Clock::now();
+                    _nextKeyboardAction = Clock::now();
                     // we need to check again if queues are not empty
                     continue;
                 }
