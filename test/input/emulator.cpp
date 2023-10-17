@@ -906,6 +906,50 @@ TEST_F(Input_Emulator, Timing)
     // key up 2 is what create the last measurement
 }
 
+TEST_F(Input_Emulator, MouseKeyboardActionInterleaving)
+{
+    auto const button = Input::MouseButton::Left;
+    auto const key    = Input::Key::Return;
+
+    strategy.expectCalculateButtonDownTime(ms{50});
+    strategy.expectCalculateButtonUpTime(ms{15});
+    strategy.expectCalculateKeyDownTime(ms{20});
+    strategy.expectCalculateKeyUpTime(ms{10});
+
+    systemInterface.expectDown(button, true);
+    systemInterface.expectDown(key, true);
+    systemInterface.expectUp(key, true);
+    systemInterface.expectUp(button, true);
+
+    sut.click(button);
+    sut.wait(false, ms{5});
+    sut.press(key);
+
+    waitForSignal(ms{1000});
+    EXPECT_EQ(sut.errorCounter(), 0U);
+    ASSERT_EQ(timePoints.size(), 4U);
+
+    // evaluate timing
+    auto const      maxDeviationMs = 5;
+    std::vector<ms> timings{};
+    for (auto i = 1U; i < timePoints.size(); ++i)
+    {
+        timings.emplace_back(std::chrono::duration_cast<ms>(timePoints[i] - timePoints[0U]));
+        EXPECT_NE(timings.back().count(), 0U);
+    }
+
+    auto       expectedTimeMs = 0U;
+    auto const checkTiming    = [&](ms const &actualTime, std::uint32_t const offset) noexcept {
+        expectedTimeMs += offset;
+        EXPECT_GE(actualTime.count(), (expectedTimeMs - maxDeviationMs)) << "action performed too early";
+        EXPECT_LE(actualTime.count(), (expectedTimeMs + maxDeviationMs)) << "action performed too late";
+    };
+
+    checkTiming(timings[0], 5U);  // button down - key down
+    checkTiming(timings[1], 20U); // key down - key up
+    checkTiming(timings[2], 25U); // key up - button up
+}
+
 TEST_F(Input_Emulator, ActionCountMouse) {}
 
 TEST_F(Input_Emulator, ActionCountKeyboard) {}
