@@ -1000,7 +1000,29 @@ TEST_F(Input_Emulator, ActionCountKeyboard)
     EXPECT_EQ(sut.actionCountKeyboard(), 4U);
 }
 
-TEST_F(Input_Emulator, Clear) {}
+TEST_F(Input_Emulator, Clear)
+{
+    auto const button = Input::MouseButton::XButton2;
+    auto const key    = Input::Key::L;
+
+    strategy.expectCalculateButtonDownTime(ms{20});
+    strategy.expectCalculateButtonUpTime(ms{20});
+    strategy.expectCalculateKeyDownTime(ms{20});
+    strategy.expectCalculateKeyUpTime(ms{20});
+
+    sut.wait(true, ms{20});
+    sut.sync();
+    sut.click(button);
+    sut.press(key);
+
+    EXPECT_NE(sut.actionCountKeyboard(), 0U);
+    EXPECT_NE(sut.actionCountMouse(), 0U);
+
+    sut.clear();
+
+    EXPECT_EQ(sut.actionCountKeyboard(), 0U);
+    EXPECT_EQ(sut.actionCountMouse(), 0U);
+}
 
 TEST_F(Input_Emulator, Reset) {}
 
