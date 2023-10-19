@@ -950,9 +950,55 @@ TEST_F(Input_Emulator, MouseKeyboardActionInterleaving)
     checkTiming(timings[2], 25U); // key up - button up
 }
 
-TEST_F(Input_Emulator, ActionCountMouse) {}
+TEST_F(Input_Emulator, ActionCountMouse)
+{
+    auto const      button = Input::MouseButton::Left;
+    Rectangle const targetArea{5, 5, 10U, 10U};
 
-TEST_F(Input_Emulator, ActionCountKeyboard) {}
+    strategy.expectCalculateButtonDownTime(ms{2});
+    strategy.expectCalculateButtonUpTime(ms{2});
+    strategy.expectCalculateTargetIn(targetArea.center(), targetArea);
+    strategy.expectCalculateSpeed(1000);
+    strategy.expectCalculateHorizontalSpeedFactor(1.0);
+    strategy.expectCalculateWheelSpeed(100U);
+    strategy.expectCalculateWheelResetTime(ms{50U});
+    strategy.expectCalculateWheelSteps(25, 50);
+    strategy.expectCalculateWheelSpeed(50U);
+    strategy.expectCalculateWheelResetTime(ms{80U});
+    strategy.expectCalculateWheelSteps(25, 25);
+
+    sut.wait(true, ms{1000});
+    std::this_thread::sleep_for(ms{5}); // remove wait from list
+    EXPECT_EQ(sut.actionCountMouse(), 0U);
+
+    sut.click(button);
+    EXPECT_EQ(sut.actionCountMouse(), 2U);
+    sut.moveTo(targetArea);
+    EXPECT_EQ(sut.actionCountMouse(), 3U);
+    sut.turnMouseWheel(50);
+    EXPECT_EQ(sut.actionCountMouse(), 5U);
+}
+
+TEST_F(Input_Emulator, ActionCountKeyboard)
+{
+    auto const key = Input::Key::A;
+
+    strategy.expectCalculateKeyDownTime(ms{2});
+    strategy.expectCalculateKeyUpTime(ms{2});
+    strategy.expectCalculateKeyDownTime(ms{2});
+    strategy.expectCalculateKeyUpTime(ms{2});
+
+    sut.wait(false, ms{1000});
+    std::this_thread::sleep_for(ms{5}); // remove wait from list
+    EXPECT_EQ(sut.actionCountKeyboard(), 0U);
+
+    sut.press(key);
+    EXPECT_EQ(sut.actionCountKeyboard(), 2U);
+    sut.down(key);
+    EXPECT_EQ(sut.actionCountKeyboard(), 3U);
+    sut.up(key);
+    EXPECT_EQ(sut.actionCountKeyboard(), 4U);
+}
 
 TEST_F(Input_Emulator, Clear) {}
 

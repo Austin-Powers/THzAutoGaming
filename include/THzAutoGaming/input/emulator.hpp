@@ -402,7 +402,7 @@ private:
         WorkerThread::UniqueLock lock{_worker.mutex};
         if (_mouseActions.empty())
         {
-            _nextMouseAction = Clock::now();
+            _nextMouseAction = std::max(_nextMouseAction, Clock::now());
             _worker.wakeUp.notify_one();
         }
         _mouseActions.emplace_back();
@@ -430,7 +430,7 @@ private:
         WorkerThread::UniqueLock lock{_worker.mutex};
         if (_mouseActions.empty())
         {
-            _nextMouseAction = Clock::now();
+            _nextMouseAction = std::max(_nextMouseAction, Clock::now());
             _worker.wakeUp.notify_one();
         }
         _mouseActions.emplace_back();
@@ -459,7 +459,7 @@ private:
         WorkerThread::UniqueLock lock{_worker.mutex};
         if (_mouseActions.empty())
         {
-            _nextMouseAction = Clock::now();
+            _nextMouseAction = std::max(_nextMouseAction, Clock::now());
             _worker.wakeUp.notify_one();
         }
         _mouseActions.emplace_back();
@@ -481,7 +481,7 @@ private:
         WorkerThread::UniqueLock lock{_worker.mutex};
         if (_keyboardActions.empty())
         {
-            _nextKeyboardAction = Clock::now();
+            _nextKeyboardAction = std::max(_nextKeyboardAction, Clock::now());
             _worker.wakeUp.notify_one();
         }
         _keyboardActions.emplace_back(type, cooldown, key);
@@ -497,9 +497,10 @@ private:
             if (nextTimePoint > Clock::now())
             {
                 _worker.wakeUp.wait_until(lock, nextTimePoint);
+                // check again if we can perform the next action
+                continue;
             }
 
-            // we need to check again as queues might have been cleared in the mean time
             if (!_mouseActions.empty() && !_keyboardActions.empty())
             {
                 if ((_mouseActions[0U].type == MouseAction::Type::Sync) &&
