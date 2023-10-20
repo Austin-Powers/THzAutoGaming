@@ -994,6 +994,7 @@ TEST_F(Input_Emulator, Clear)
     sut.sync();
     sut.click(button);
     sut.press(key);
+    std::this_thread::sleep_for(ms{5}); // make sure strategy is called
 
     EXPECT_NE(sut.actionCountKeyboard(), 0U);
     EXPECT_NE(sut.actionCountMouse(), 0U);
