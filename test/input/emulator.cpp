@@ -159,10 +159,10 @@ struct Input_Emulator : public testing::Test
         ms check(std::uint8_t const id) noexcept
         {
             ms returnValue{};
-            EXPECT_FALSE(_calls.empty()) << "Unexpected additional call";
+            EXPECT_FALSE(_calls.empty()) << "Unexpected additional call, id: " << static_cast<int>(id);
             if (!_calls.empty())
             {
-                EXPECT_EQ(_calls.front().id, id) << "Unexpected function call";
+                EXPECT_EQ(_calls.front().id, id) << "Unexpected function call, id: " << static_cast<int>(id);
                 returnValue = _calls.front().time;
                 _calls.pop_front();
             }
@@ -292,39 +292,19 @@ struct Input_Emulator : public testing::Test
         {
             setup(6U, steps, returnValue);
         }
-        bool turnMouseWheel(std::int16_t const steps) noexcept
-        {
-            // std::cout << "turnMouseWheel " << NOW_MS << std::endl;
-            return check(6U, steps);
-        }
+        bool turnMouseWheel(std::int16_t const steps) noexcept { return check(6U, steps); }
 
         void expectDown(Input::MouseButton const mb, bool returnValue) noexcept { setup(7U, mb, returnValue); }
-        bool down(Input::MouseButton const mb) noexcept
-        {
-            // std::cout << "button down " << NOW_MS << std::endl;
-            return check(7U, mb);
-        }
+        bool down(Input::MouseButton const mb) noexcept { return check(7U, mb); }
 
         void expectUp(Input::MouseButton const mb, bool returnValue) noexcept { setup(8U, mb, returnValue); }
-        bool up(Input::MouseButton const mb) noexcept
-        {
-            // std::cout << "button up   " << NOW_MS << std::endl;
-            return check(8U, mb);
-        }
+        bool up(Input::MouseButton const mb) noexcept { return check(8U, mb); }
 
         void expectDown(Input::Key const k, bool returnValue) noexcept { setup(9U, k, returnValue); }
-        bool down(Input::Key const k) noexcept
-        {
-            // std::cout << "key down " << NOW_MS << std::endl;
-            return check(9U, k);
-        }
+        bool down(Input::Key const k) noexcept { return check(9U, k); }
 
         void expectUp(Input::Key const k, bool returnValue) noexcept { setup(10U, k, returnValue); }
-        bool up(Input::Key const k) noexcept
-        {
-            // std::cout << "key up   " << NOW_MS << std::endl;
-            return check(10U, k);
-        }
+        bool up(Input::Key const k) noexcept { return check(10U, k); }
 
     private:
         template <typename T>
@@ -1024,6 +1004,133 @@ TEST_F(Input_Emulator, Clear)
     EXPECT_EQ(sut.actionCountMouse(), 0U);
 }
 
-TEST_F(Input_Emulator, Reset) {}
+TEST_F(Input_Emulator, ResetPerformsNoActionThatIsNotNeeded)
+{
+
+    systemInterface.expectIsActive(Input::KeyboardLock::Scroll, false);
+    systemInterface.expectIsActive(Input::KeyboardLock::Num, false);
+    systemInterface.expectIsActive(Input::KeyboardLock::Caps, false);
+
+    for (auto const button : Input::MouseButtons)
+    {
+        systemInterface.expectIsDown(button, false);
+    }
+    for (auto const key : Input::Keys)
+    {
+        systemInterface.expectIsDown(key, false);
+    }
+
+    sut.reset();
+    EXPECT_EQ(sut.actionCountMouse(), 0U);
+}
+
+TEST_F(Input_Emulator, ResetDoesNotPerformAClear)
+{
+
+    systemInterface.expectIsActive(Input::KeyboardLock::Scroll, false);
+    systemInterface.expectIsActive(Input::KeyboardLock::Num, false);
+    systemInterface.expectIsActive(Input::KeyboardLock::Caps, false);
+
+    for (auto const button : Input::MouseButtons)
+    {
+        systemInterface.expectIsDown(button, false);
+    }
+    for (auto const key : Input::Keys)
+    {
+        systemInterface.expectIsDown(key, false);
+    }
+
+    sut.wait(true, ms{20});
+    sut.wait(true, ms{20});
+
+    sut.reset();
+    EXPECT_NE(sut.actionCountMouse(), 0U);
+}
+
+TEST_F(Input_Emulator, ResetDeactivatesLocks)
+{
+    strategy.expectCalculateKeyDownTime(ms{2});
+    strategy.expectCalculateKeyUpTime(ms{2});
+    strategy.expectCalculateKeyDownTime(ms{2});
+    strategy.expectCalculateKeyUpTime(ms{2});
+    strategy.expectCalculateKeyDownTime(ms{2});
+    strategy.expectCalculateKeyUpTime(ms{2});
+
+    systemInterface.expectIsActive(Input::KeyboardLock::Scroll, true);
+    systemInterface.expectIsActive(Input::KeyboardLock::Num, true);
+    systemInterface.expectIsActive(Input::KeyboardLock::Caps, true);
+
+    for (auto const button : Input::MouseButtons)
+    {
+        systemInterface.expectIsDown(button, false);
+    }
+    for (auto const key : Input::Keys)
+    {
+        systemInterface.expectIsDown(key, false);
+    }
+
+    systemInterface.expectDown(Input::Key::ScrollLock, true);
+    systemInterface.expectUp(Input::Key::ScrollLock, true);
+    systemInterface.expectDown(Input::Key::NumLock, true);
+    systemInterface.expectUp(Input::Key::NumLock, true);
+    systemInterface.expectDown(Input::Key::CapsLock, true);
+    systemInterface.expectUp(Input::Key::CapsLock, true);
+
+    sut.wait(false, ms{10});
+    sut.reset();
+    waitForSignal(ms{4000});
+}
+
+TEST_F(Input_Emulator, ResetReleasesAllButtons)
+{
+    systemInterface.expectIsActive(Input::KeyboardLock::Scroll, false);
+    systemInterface.expectIsActive(Input::KeyboardLock::Num, false);
+    systemInterface.expectIsActive(Input::KeyboardLock::Caps, false);
+
+    for (auto const button : Input::MouseButtons)
+    {
+        strategy.expectCalculateButtonUpTime(ms{2});
+        systemInterface.expectIsDown(button, true);
+    }
+    for (auto const key : Input::Keys)
+    {
+        systemInterface.expectIsDown(key, false);
+    }
+
+    for (auto const button : Input::MouseButtons)
+    {
+        systemInterface.expectUp(button, true);
+    }
+
+    sut.wait(true, ms{10});
+    sut.reset();
+    waitForSignal(ms{4000});
+}
+
+TEST_F(Input_Emulator, ResetReleasesAllKeys)
+{
+    systemInterface.expectIsActive(Input::KeyboardLock::Scroll, false);
+    systemInterface.expectIsActive(Input::KeyboardLock::Num, false);
+    systemInterface.expectIsActive(Input::KeyboardLock::Caps, false);
+
+    for (auto const button : Input::MouseButtons)
+    {
+        systemInterface.expectIsDown(button, false);
+    }
+    for (auto const key : Input::Keys)
+    {
+        strategy.expectCalculateKeyUpTime(ms{2});
+        systemInterface.expectIsDown(key, true);
+    }
+
+    for (auto const key : Input::Keys)
+    {
+        systemInterface.expectUp(key, true);
+    }
+
+    sut.wait(false, ms{10});
+    sut.reset();
+    waitForSignal(ms{16000});
+}
 
 } // namespace Terrahertz::UnitTests
