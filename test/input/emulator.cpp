@@ -321,10 +321,10 @@ struct Input_Emulator : public testing::Test
         bool check(std::uint8_t const id, T const t) noexcept
         {
             auto returnValue{true};
-            EXPECT_FALSE(_calls->empty()) << "Unexpected additional call";
+            EXPECT_FALSE(_calls->empty()) << "Unexpected additional call, id: " << static_cast<int>(id);
             if (!_calls->empty())
             {
-                EXPECT_EQ(_calls->front().id, id) << "Unexpected function call";
+                EXPECT_EQ(_calls->front().id, id) << "Unexpected function call, id: " << static_cast<int>(id);
                 EXPECT_EQ(getValue<T>(_calls->front()), t);
                 returnValue = _calls->front().returnValue;
                 addTimePoint();
@@ -990,8 +990,8 @@ TEST_F(Input_Emulator, Clear)
     strategy.expectCalculateKeyDownTime(ms{20});
     strategy.expectCalculateKeyUpTime(ms{20});
 
-    sut.wait(true, ms{20});
-    sut.sync();
+    sut.wait(true, ms{30});
+    sut.wait(false, ms{30});
     sut.click(button);
     sut.press(key);
     std::this_thread::sleep_for(ms{5}); // make sure strategy is called
