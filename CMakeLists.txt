@@ -71,7 +71,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 	THzImage
 )
 
-if(THZ_AUTO_GAMING_IS_ROOT)
+if(THZ_AUTO_GAMING_IS_ROOT OR BUILD_THZ_AUTO_GAMING_TESTS)
 	# For Windows: Prevent overriding the parent project's compiler/linker settings
 	# Not needed here as there will be no parent project, but its good to remember this command
 	set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
