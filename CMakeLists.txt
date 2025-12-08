@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.14)
 cmake_policy(VERSION 3.14)
 
 if(NOT DEFINED PROJECT_NAME)
-	set(THZ_AUTO_GAMING_IS_ROOT True)
+	set(THZ_AUTOGAMING_IS_ROOT True)
 else()
-	set(THZ_AUTO_GAMING_IS_ROOT False)
+	set(THZ_AUTOGAMING_IS_ROOT False)
 endif()
 
 project(THzAutoGaming VERSION 1.0)
@@ -50,6 +50,7 @@ add_library(${PROJECT_NAME} STATIC
 	src/input/parameters.cpp
 	src/input/windowsInterface.cpp
 	src/simulations/tileMatchingPuzzle.cpp
+	src/utility/loopControl.cpp
 
 	include/THzAutoGaming/input/common.hpp
 	include/THzAutoGaming/input/emulator.hpp
@@ -59,6 +60,7 @@ add_library(${PROJECT_NAME} STATIC
 	include/THzAutoGaming/input/windowsInterface.hpp
 	include/THzAutoGaming/optimisation/evolution/algorithm.hpp
 	include/THzAutoGaming/simulations/tileMatchingPuzzle.hpp
+	include/THzAutoGaming/utility/loopControl.hpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -71,7 +73,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 	THzImage
 )
 
-if(THZ_AUTO_GAMING_IS_ROOT OR BUILD_THZ_AUTO_GAMING_TESTS)
+if(THZ_AUTOGAMING_IS_ROOT OR BUILD_THZ_AUTOGAMING_TESTS)
 	# For Windows: Prevent overriding the parent project's compiler/linker settings
 	# Not needed here as there will be no parent project, but its good to remember this command
 	set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)

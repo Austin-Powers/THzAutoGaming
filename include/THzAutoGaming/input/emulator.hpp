@@ -1,12 +1,13 @@
-#ifndef THZ_AUTO_GAMING_INPUT_EMULATOR_HPP
-#define THZ_AUTO_GAMING_INPUT_EMULATOR_HPP
+#ifndef THZ_AUTOGAMING_INPUT_EMULATOR_HPP
+#define THZ_AUTOGAMING_INPUT_EMULATOR_HPP
 
+#include "THzAutoGaming/common/timeDefinitions.hpp"
+#include "THzAutoGaming/input/common.hpp"
+#include "THzAutoGaming/input/iDeviationStrategy.hpp"
+#include "THzAutoGaming/input/normalDeviationStrategy.hpp"
+#include "THzAutoGaming/input/parameters.hpp"
 #include "THzCommon/math/rectangle.hpp"
 #include "THzCommon/utility/workerThread.hpp"
-#include "common.hpp"
-#include "iDeviationStrategy.hpp"
-#include "normalDeviationStrategy.hpp"
-#include "parameters.hpp"
 
 #include <algorithm>
 #include <deque>
@@ -284,15 +285,6 @@ public:
     void enterString(std::string_view const string) noexcept {}
 
 private:
-    /// @brief The type of clock used in the entire class.
-    using Clock = std::chrono::system_clock;
-
-    /// @brief Shortcut to the type of time_point used in the entire class.
-    using TimePoint = std::chrono::time_point<Clock>;
-
-    /// @brief Shortcut to milliseconds.
-    using Ms = std::chrono::milliseconds;
-
     /// @brief Data structure for a single mouse related action performed by the emulator.
     struct MouseAction
     {
@@ -735,4 +727,4 @@ private:
 
 } // namespace Terrahertz::Input
 
-#endif // !THZ_AUTO_GAMING_INPUT_EMULATOR_HPP
+#endif // !THZ_AUTOGAMING_INPUT_EMULATOR_HPP

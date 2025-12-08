@@ -1,5 +1,5 @@
-#ifndef THZ_AUTO_GAMING_INPUT_COMMON_HPP
-#define THZ_AUTO_GAMING_INPUT_COMMON_HPP
+#ifndef THZ_AUTOGAMING_INPUT_COMMON_HPP
+#define THZ_AUTOGAMING_INPUT_COMMON_HPP
 
 #include <concepts>
 #include <cstdint>
@@ -295,4 +295,4 @@ concept SystemInterface = requires(
 
 } // namespace Terrahertz::Input
 
-#endif // !THZ_AUTO_GAMING_INPUT_COMMON_HPP
+#endif // !THZ_AUTOGAMING_INPUT_COMMON_HPP

@@ -1,5 +1,5 @@
-#ifndef THZ_AUTO_GAMING_INPUT_WINDOWSINTERFACE_HPP
-#define THZ_AUTO_GAMING_INPUT_WINDOWSINTERFACE_HPP
+#ifndef THZ_AUTOGAMING_INPUT_WINDOWSINTERFACE_HPP
+#define THZ_AUTOGAMING_INPUT_WINDOWSINTERFACE_HPP
 
 // functions used by this class are OS specific
 #ifdef _WIN32
@@ -87,4 +87,4 @@ using WindowEmulator = Emulator<WindowsInterface>;
 } // namespace Terrahertz::Input
 
 #endif // !_WIN32
-#endif // !THZ_AUTO_GAMING_INPUT_WINDOWSINTERFACE_HPP
+#endif // !THZ_AUTOGAMING_INPUT_WINDOWSINTERFACE_HPP
