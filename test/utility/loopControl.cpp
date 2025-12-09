@@ -31,12 +31,35 @@ TEST_F(Utility_LoopControl, WaitReturnsFalseAfterShutdownWasCalled)
 TEST_F(Utility_LoopControl, IntervalUpdate)
 {
     LoopControl sut{};
-    EXPECT_FALSE(sut.updateInterval(std::chrono::milliseconds{-12}));
+    EXPECT_FALSE(sut.updateInterval(Ms{-12}));
     EXPECT_EQ(sut.currentInterval().count(), 100U);
-    EXPECT_FALSE(sut.updateInterval(std::chrono::milliseconds{}));
+    EXPECT_FALSE(sut.updateInterval(Ms{}));
     EXPECT_EQ(sut.currentInterval().count(), 100U);
-    EXPECT_TRUE(sut.updateInterval(std::chrono::milliseconds{12}));
+    EXPECT_TRUE(sut.updateInterval(Ms{12}));
     EXPECT_EQ(sut.currentInterval().count(), 12U);
+}
+
+TEST_F(Utility_LoopControl, IntervalMostlyCorrect)
+{
+    LoopControl sut{};
+    EXPECT_TRUE(sut.updateInterval(Ms{10}));
+
+    auto const startTime = std::chrono::steady_clock::now();
+
+    auto i = 0U;
+    while (sut.wait() && (i < 20U))
+    {
+        ++i;
+        if (i == 10)
+        {
+            sut.shutdown();
+        }
+    }
+    auto const endTime  = std::chrono::steady_clock::now();
+    auto const duration = std::chrono::duration_cast<Ms>(endTime - startTime);
+    EXPECT_GE(duration.count(), 95U);
+    EXPECT_LE(duration.count(), 105U);
+    EXPECT_EQ(i, 10U);
 }
 
 } // namespace Terrahertz::UnitTests
