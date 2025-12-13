@@ -4,6 +4,14 @@
 
 namespace Terrahertz::UnitTests {
 
+class MockCondition : public ICondition
+{
+public:
+    bool returnValue = false;
+
+    bool check() noexcept override { return returnValue; }
+};
+
 struct Utility_LoopControl : public testing::Test
 {
     std::uint32_t measureIntervalInMs(LoopControl &sut) { return 0U; }
@@ -60,6 +68,42 @@ TEST_F(Utility_LoopControl, IntervalMostlyCorrect)
     EXPECT_GE(duration.count(), 95U);
     EXPECT_LE(duration.count(), 105U);
     EXPECT_EQ(i, 10U);
+}
+
+TEST_F(Utility_LoopControl, AddingNullptrConditionDoesNotCauseProblems)
+{
+    LoopControl sut{};
+    EXPECT_TRUE(sut.updateInterval(Ms{10}));
+    sut.addShutdownCondition(nullptr);
+    EXPECT_TRUE(sut.wait());
+    sut.shutdown();
+    EXPECT_FALSE(sut.wait());
+}
+
+TEST_F(Utility_LoopControl, AddingCondition)
+{
+    LoopControl   sut{};
+    MockCondition condition{};
+
+    EXPECT_TRUE(sut.updateInterval(Ms{10}));
+    sut.addShutdownCondition(&condition);
+    EXPECT_TRUE(sut.wait());
+    condition.returnValue = true;
+    EXPECT_FALSE(sut.wait());
+}
+
+TEST_F(Utility_LoopControl, OneOfManyConditionsIsEnoughToShutdown)
+{
+    LoopControl   sut{};
+    MockCondition condition0{};
+    MockCondition condition1{};
+
+    EXPECT_TRUE(sut.updateInterval(Ms{10}));
+    sut.addShutdownCondition(&condition0);
+    sut.addShutdownCondition(&condition1);
+    EXPECT_TRUE(sut.wait());
+    condition1.returnValue = true;
+    EXPECT_FALSE(sut.wait());
 }
 
 } // namespace Terrahertz::UnitTests

@@ -6,6 +6,17 @@ namespace Terrahertz {
 
 bool LoopControl::wait() noexcept
 {
+    if (!_shutdownConditions.empty())
+    {
+        for (auto &condition : _shutdownConditions)
+        {
+            if (condition->check())
+            {
+                _running = false;
+                break;
+            }
+        }
+    }
     if (_running)
     {
         auto const currentTime = Clock::now();
@@ -34,5 +45,13 @@ bool LoopControl::updateInterval(std::chrono::milliseconds const interval) noexc
 std::chrono::milliseconds LoopControl::currentInterval() const noexcept { return _interval; }
 
 void LoopControl::shutdown() noexcept { _running = false; }
+
+void LoopControl::addShutdownCondition(ICondition *const condition) noexcept
+{
+    if (condition != nullptr)
+    {
+        _shutdownConditions.emplace_back(condition);
+    }
+}
 
 } // namespace Terrahertz

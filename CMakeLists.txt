@@ -21,12 +21,12 @@ FetchContent_Declare(
 FetchContent_Declare(
 	THzCommon
 	GIT_REPOSITORY https://github.com/Austin-Powers/THzCommon
-	GIT_TAG        548d42fa83bbb008ea5a1a29ab87e09e28cffabd # latest 09.10.23
+	GIT_TAG        319ba1236d6cf716ecda4b6bf9e722d57b7c1405 # latest 28.11.25
 )
 FetchContent_Declare(
 	THzImage
 	GIT_REPOSITORY https://github.com/Austin-Powers/THzImage
-	GIT_TAG        8b4afc529c4c33a37593db65c469845403c752d6 # latest 17.02.23
+	GIT_TAG        0b83a119c44acf41d2f78e8910446a79dbebd63a # latest 10.12.25
 )
 FetchContent_Declare(
 	gsl
@@ -60,6 +60,7 @@ add_library(${PROJECT_NAME} STATIC
 	include/THzAutoGaming/input/windowsInterface.hpp
 	include/THzAutoGaming/optimisation/evolution/algorithm.hpp
 	include/THzAutoGaming/simulations/tileMatchingPuzzle.hpp
+	include/THzAutoGaming/utility/iCondition.hpp
 	include/THzAutoGaming/utility/loopControl.hpp
 )
 

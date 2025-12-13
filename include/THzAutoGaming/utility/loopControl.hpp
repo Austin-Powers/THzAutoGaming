@@ -2,6 +2,9 @@
 #define THZ_AUTOGAMING_UTILITY_LOOPCONTROL_HPP
 
 #include "THzAutoGaming/common/timeDefinitions.hpp"
+#include "THzAutoGaming/utility/iCondition.hpp"
+
+#include <vector>
 
 namespace Terrahertz {
 
@@ -29,6 +32,12 @@ public:
     /// @brief Shuts down the loop.
     void shutdown() noexcept;
 
+    /// @brief Adds a condition that is checked at the beginning of wait(), that if met, will shutdown the loop.
+    ///
+    /// @param condition The condition to check each time wait() is called.
+    /// @remark Any condition being met will trigger shutdown.
+    void addShutdownCondition(ICondition *const condition) noexcept;
+
 private:
     /// @brief Flag signalling if the loop is still running.
     bool _running{true};
@@ -38,6 +47,9 @@ private:
 
     /// @brief The next time the loop should run.
     TimePoint _nextPoint{Clock::now()};
+
+    /// @brief List of conditions that trigger shutdown of the
+    std::vector<ICondition *> _shutdownConditions{};
 };
 
 } // namespace Terrahertz
