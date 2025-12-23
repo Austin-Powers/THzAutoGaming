@@ -354,7 +354,7 @@ struct Input_Emulator : public testing::Test
         TimeVector *_timePoints{};
     };
 
-    using TestEmulator = Input::Emulator<MockSystemInterface>;
+    using TestEmulator = Input::BaseEmulator<MockSystemInterface>;
 
     static Point toPoint(std::uint32_t const x, std::uint32_t const y) noexcept
     {

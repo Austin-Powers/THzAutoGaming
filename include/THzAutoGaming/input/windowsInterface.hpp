@@ -5,7 +5,6 @@
 #ifdef _WIN32
 
 #include "THzAutoGaming/input/common.hpp"
-#include "THzAutoGaming/input/emulator.hpp"
 
 #include <cstdint>
 
@@ -80,9 +79,6 @@ public:
     /// @return True if the operation was successful, false otherwise.
     bool up(Key const key) const noexcept;
 };
-
-/// @brief Type of an Emulator using the windows interface.
-using WindowEmulator = Emulator<WindowsInterface>;
 
 } // namespace Terrahertz::Input
 

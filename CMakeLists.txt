@@ -50,6 +50,7 @@ add_library(${PROJECT_NAME} STATIC
 	src/input/parameters.cpp
 	src/input/windowsInterface.cpp
 	src/simulations/tileMatchingPuzzle.cpp
+	src/utility/commonConditions.cpp
 	src/utility/loopControl.cpp
 
 	include/THzAutoGaming/input/common.hpp
@@ -60,6 +61,7 @@ add_library(${PROJECT_NAME} STATIC
 	include/THzAutoGaming/input/windowsInterface.hpp
 	include/THzAutoGaming/optimisation/evolution/algorithm.hpp
 	include/THzAutoGaming/simulations/tileMatchingPuzzle.hpp
+	include/THzAutoGaming/utility/commonConditions.hpp
 	include/THzAutoGaming/utility/iCondition.hpp
 	include/THzAutoGaming/utility/loopControl.hpp
 )

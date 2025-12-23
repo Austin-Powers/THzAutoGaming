@@ -9,6 +9,10 @@
 #include "THzCommon/math/rectangle.hpp"
 #include "THzCommon/utility/workerThread.hpp"
 
+#ifdef _WIN32
+#include "THzAutoGaming/input/windowsInterface.hpp"
+#endif
+
 #include <algorithm>
 #include <deque>
 #include <string_view>
@@ -18,14 +22,14 @@ namespace Terrahertz::Input {
 
 /// @brief Emulates user input via keyboard and mouse.
 template <SystemInterface TSystemInterface>
-class Emulator
+class BaseEmulator
 {
 public:
     /// @brief Initializes a new Emulator using the given parameters and interface.
     ///
     /// @param parameters The parameter used for the NormalDeviationStrategy.
     /// @param sysInterface The interface to use for the inputs.
-    Emulator(Parameters const &pParameters, TSystemInterface pInterface = {}) noexcept
+    BaseEmulator(Parameters const &pParameters, TSystemInterface pInterface = {}) noexcept
         : _defaultStrategy{pParameters}, _strategy{&_defaultStrategy}, _interface{pInterface}
     {
         _worker.thread = std::thread([this]() { threadMethod(); });
@@ -35,14 +39,14 @@ public:
     ///
     /// @param strategy Pointer to the strategy that should be used by the emulator.
     /// @param pInterface The interface to use for the inputs.
-    Emulator(IDeviationStrategy *const strategy, TSystemInterface pInterface = {}) noexcept
+    BaseEmulator(IDeviationStrategy *const strategy, TSystemInterface pInterface = {}) noexcept
         : _defaultStrategy{Parameters::Fast()}, _strategy{strategy}, _interface{pInterface}
     {
         _worker.thread = std::thread([this]() { threadMethod(); });
     }
 
     /// @brief Finalizes this Emulator instance.
-    ~Emulator() noexcept { _worker.shutdown(); }
+    ~BaseEmulator() noexcept { _worker.shutdown(); }
 
     /// @brief Returns a pointer to the strategy used by the emulator.
     ///
@@ -724,6 +728,11 @@ private:
     /// @brief Counter for the error during the execution.
     std::uint32_t _errorCounter{};
 };
+
+#ifdef _WIN32
+/// @brief The emulator using the current system interface.
+using Emulator = BaseEmulator<WindowsInterface>;
+#endif
 
 } // namespace Terrahertz::Input
 
