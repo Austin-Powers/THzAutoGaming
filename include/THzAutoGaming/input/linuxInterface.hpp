@@ -1,8 +1,9 @@
-#ifndef THZ_AUTOGAMING_INPUT_WINDOWSINTERFACE_HPP
-#define THZ_AUTOGAMING_INPUT_WINDOWSINTERFACE_HPP
+
+#ifndef THZ_AUTOGAMING_INPUT_LXINTERFACE_HPP
+#define THZ_AUTOGAMING_INPUT_LXINTERFACE_HPP
 
 // functions used by this class are OS specific
-#ifdef _WIN32
+#ifdef __linux__
 
 #include "THzAutoGaming/input/common.hpp"
 
@@ -11,11 +12,11 @@
 namespace Terrahertz::Input {
 
 /// @brief Implementation of the SystemInterface concept for windows.
-class WindowsInterface
+class LinuxInterface
 {
 public:
     /// @brief The default constructor.
-    WindowsInterface() noexcept = default;
+    LinuxInterface() noexcept = default;
 
     /// @brief Checks if the given mouse button is down.
     ///
@@ -82,5 +83,5 @@ public:
 
 } // namespace Terrahertz::Input
 
-#endif // _WIN32
-#endif // !THZ_AUTOGAMING_INPUT_WINDOWSINTERFACE_HPP
+#endif // __linux__
+#endif // !THZ_AUTOGAMING_INPUT_LXINTERFACE_HPP

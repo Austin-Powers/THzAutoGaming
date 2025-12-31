@@ -46,6 +46,7 @@ if(NOT DEFINED THzImage_SOURCE_DIR)
 endif()
 
 add_library(${PROJECT_NAME} STATIC
+	src/input/linuxInterface.cpp
 	src/input/normalDeviationStrategy.cpp
 	src/input/parameters.cpp
 	src/input/windowsInterface.cpp
@@ -56,6 +57,7 @@ add_library(${PROJECT_NAME} STATIC
 	include/THzAutoGaming/input/common.hpp
 	include/THzAutoGaming/input/emulator.hpp
 	include/THzAutoGaming/input/iDeviationStrategy.hpp
+	include/THzAutoGaming/input/linuxInterface.hpp
 	include/THzAutoGaming/input/normalDeviationStrategy.hpp
 	include/THzAutoGaming/input/parameters.hpp
 	include/THzAutoGaming/input/windowsInterface.hpp

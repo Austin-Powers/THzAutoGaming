@@ -12,6 +12,9 @@
 #ifdef _WIN32
 #include "THzAutoGaming/input/windowsInterface.hpp"
 #endif
+#ifdef __linux__
+#include "THzAutoGaming/input/linuxInterface.hpp"
+#endif
 
 #include <algorithm>
 #include <deque>
@@ -732,6 +735,10 @@ private:
 #ifdef _WIN32
 /// @brief The emulator using the current system interface.
 using Emulator = BaseEmulator<WindowsInterface>;
+#endif
+#ifdef __linux__
+/// @brief The emulator using the current system interface.
+using Emulator = BaseEmulator<LinuxInterface>;
 #endif
 
 } // namespace Terrahertz::Input

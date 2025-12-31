@@ -119,4 +119,4 @@ bool WindowsInterface::up(Key const key) const noexcept
 
 } // namespace Terrahertz::Input
 
-#endif // !_WIN32
+#endif // _WIN32
