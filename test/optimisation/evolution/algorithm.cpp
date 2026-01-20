@@ -72,7 +72,7 @@ struct TestEvaluator
     size_t *_evalCounter{};
 };
 
-struct Optimisation_Evolution_Algorithm : public testing::Test
+struct OptimisationEvolutionAlgorithm : public testing::Test
 {
     using Parameters = Optimisation::Evolution::Parameters;
 
@@ -99,7 +99,7 @@ struct Optimisation_Evolution_Algorithm : public testing::Test
     }
 };
 
-TEST_F(Optimisation_Evolution_Algorithm, ParametersDefaultValues)
+TEST_F(OptimisationEvolutionAlgorithm, ParametersDefaultValues)
 {
     Parameters const defaultParams{};
     EXPECT_GE(defaultParams.population, 100U);
@@ -115,7 +115,7 @@ TEST_F(Optimisation_Evolution_Algorithm, ParametersDefaultValues)
     EXPECT_LT(defaultParams.ratioDynamics, 1.0);
 }
 
-TEST_F(Optimisation_Evolution_Algorithm, ConstructionCorrect)
+TEST_F(OptimisationEvolutionAlgorithm, ConstructionCorrect)
 {
     Parameters const defaultParams{};
     checkParameters(defaultParams, sut.parameters());
@@ -126,7 +126,7 @@ TEST_F(Optimisation_Evolution_Algorithm, ConstructionCorrect)
     EXPECT_EQ(evalCount, 0U);
 }
 
-TEST_F(Optimisation_Evolution_Algorithm, SettingIllegalParametersReturnsFalseAndChangesNothing)
+TEST_F(OptimisationEvolutionAlgorithm, SettingIllegalParametersReturnsFalseAndChangesNothing)
 {
     auto const initialState = sut.parameters();
     auto const checkSet     = [&](Parameters const &p) noexcept {
@@ -190,7 +190,7 @@ TEST_F(Optimisation_Evolution_Algorithm, SettingIllegalParametersReturnsFalseAnd
     parameters.ratioDynamics = 0.02;
 }
 
-TEST_F(Optimisation_Evolution_Algorithm, SettingCorrectParametersUpdatesValues)
+TEST_F(OptimisationEvolutionAlgorithm, SettingCorrectParametersUpdatesValues)
 {
     Parameters parameters{};
     parameters.population += 1U;
@@ -203,7 +203,7 @@ TEST_F(Optimisation_Evolution_Algorithm, SettingCorrectParametersUpdatesValues)
     checkParameters(parameters, sut.parameters());
 }
 
-TEST_F(Optimisation_Evolution_Algorithm, IncreasingPopulationCopiesRootIndividual)
+TEST_F(OptimisationEvolutionAlgorithm, IncreasingPopulationCopiesRootIndividual)
 {
     auto const initialCount = copyCount;
     Parameters parameters{};
@@ -212,7 +212,7 @@ TEST_F(Optimisation_Evolution_Algorithm, IncreasingPopulationCopiesRootIndividua
     EXPECT_GT(copyCount, initialCount);
 }
 
-TEST_F(Optimisation_Evolution_Algorithm, FirstRunOnlyCallsInitAndEvaluatorForEveryIndividual)
+TEST_F(OptimisationEvolutionAlgorithm, FirstRunOnlyCallsInitAndEvaluatorForEveryIndividual)
 {
     sut.runOnce();
     EXPECT_EQ(sut.generation(), 1U);

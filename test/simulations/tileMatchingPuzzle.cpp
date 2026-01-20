@@ -6,7 +6,7 @@
 
 namespace Terrahertz::UnitTests {
 
-struct Simulations_TileMatchingPuzzle : public testing::Test
+struct SimulationsTileMatchingPuzzle : public testing::Test
 {
     static constexpr std::uint8_t GridWidth{8U};
     static constexpr std::uint8_t GridHeight{8U};
@@ -96,7 +96,7 @@ struct Simulations_TileMatchingPuzzle : public testing::Test
     }
 };
 
-TEST_F(Simulations_TileMatchingPuzzle, ValidStateAfterConstruction)
+TEST_F(SimulationsTileMatchingPuzzle, ValidStateAfterConstruction)
 {
     EXPECT_EQ(sut.width(), GridWidth);
     EXPECT_EQ(sut.height(), GridHeight);
@@ -129,21 +129,21 @@ TEST_F(Simulations_TileMatchingPuzzle, ValidStateAfterConstruction)
     compareReplica(false);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, TileCoordinatesOutOfBoundReturnsErrorTile)
+TEST_F(SimulationsTileMatchingPuzzle, TileCoordinatesOutOfBoundReturnsErrorTile)
 {
     EXPECT_EQ(sut(GridWidth, 0U), Simulations::TileMatchingPuzzle::ErrorTile);
     EXPECT_EQ(sut(0U, GridHeight), Simulations::TileMatchingPuzzle::ErrorTile);
     EXPECT_EQ(sut(GridWidth, GridHeight), Simulations::TileMatchingPuzzle::ErrorTile);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, SetTileOutOfBoundReturnsFalse)
+TEST_F(SimulationsTileMatchingPuzzle, SetTileOutOfBoundReturnsFalse)
 {
     EXPECT_FALSE(sut.setTile(GridWidth, 0U, 2U));
     EXPECT_FALSE(sut.setTile(0U, GridHeight, 2U));
     EXPECT_FALSE(sut.setTile(GridWidth, GridHeight, 2U));
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, SetTileToIllegalValueReturnsFalseAndDoesNoChange)
+TEST_F(SimulationsTileMatchingPuzzle, SetTileToIllegalValueReturnsFalseAndDoesNoChange)
 {
     std::uint8_t const x{2U};
     std::uint8_t const y{2U};
@@ -155,7 +155,7 @@ TEST_F(Simulations_TileMatchingPuzzle, SetTileToIllegalValueReturnsFalseAndDoesN
     EXPECT_EQ(originalCellValue, sut(x, y));
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, SettingValueUpdatesGrid)
+TEST_F(SimulationsTileMatchingPuzzle, SettingValueUpdatesGrid)
 {
     std::uint8_t const x{3U};
     std::uint8_t const y{3U};
@@ -163,7 +163,7 @@ TEST_F(Simulations_TileMatchingPuzzle, SettingValueUpdatesGrid)
     EXPECT_EQ(sut(x, y), 2U);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, GravityFillsCellsWithTheContentFromAbove)
+TEST_F(SimulationsTileMatchingPuzzle, GravityFillsCellsWithTheContentFromAbove)
 {
     fillGrid();
 
@@ -191,7 +191,7 @@ TEST_F(Simulations_TileMatchingPuzzle, GravityFillsCellsWithTheContentFromAbove)
     compareReplica(false);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, GridGetsRefilledAfterApplyingGravity)
+TEST_F(SimulationsTileMatchingPuzzle, GridGetsRefilledAfterApplyingGravity)
 {
     fillGrid();
 
@@ -219,7 +219,7 @@ TEST_F(Simulations_TileMatchingPuzzle, GridGetsRefilledAfterApplyingGravity)
     compareReplica(true);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, CollapseOfHorizontalLine3)
+TEST_F(SimulationsTileMatchingPuzzle, CollapseOfHorizontalLine3)
 {
     fillGrid();
 
@@ -282,7 +282,7 @@ TEST_F(Simulations_TileMatchingPuzzle, CollapseOfHorizontalLine3)
     compareReplica(false);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, CollapseOfHorizontalLine4)
+TEST_F(SimulationsTileMatchingPuzzle, CollapseOfHorizontalLine4)
 {
     fillGrid();
 
@@ -318,7 +318,7 @@ TEST_F(Simulations_TileMatchingPuzzle, CollapseOfHorizontalLine4)
     compareReplica(false);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, CollapseOfHorizontalLine5)
+TEST_F(SimulationsTileMatchingPuzzle, CollapseOfHorizontalLine5)
 {
     fillGrid();
 
@@ -356,7 +356,7 @@ TEST_F(Simulations_TileMatchingPuzzle, CollapseOfHorizontalLine5)
     compareReplica(false);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, CollapseOfVerticalLine3)
+TEST_F(SimulationsTileMatchingPuzzle, CollapseOfVerticalLine3)
 {
     fillGrid();
 
@@ -390,7 +390,7 @@ TEST_F(Simulations_TileMatchingPuzzle, CollapseOfVerticalLine3)
     compareReplica(false);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, CollapseOfVerticalLine4)
+TEST_F(SimulationsTileMatchingPuzzle, CollapseOfVerticalLine4)
 {
     fillGrid();
 
@@ -426,7 +426,7 @@ TEST_F(Simulations_TileMatchingPuzzle, CollapseOfVerticalLine4)
     compareReplica(false);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, CollapseOfVerticalLine5)
+TEST_F(SimulationsTileMatchingPuzzle, CollapseOfVerticalLine5)
 {
     fillGrid();
 
@@ -464,7 +464,7 @@ TEST_F(Simulations_TileMatchingPuzzle, CollapseOfVerticalLine5)
     compareReplica(false);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, CollapseOfAngle)
+TEST_F(SimulationsTileMatchingPuzzle, CollapseOfAngle)
 {
     fillGrid();
 
@@ -502,7 +502,7 @@ TEST_F(Simulations_TileMatchingPuzzle, CollapseOfAngle)
     compareReplica(false);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, CollapseOfTPiece)
+TEST_F(SimulationsTileMatchingPuzzle, CollapseOfTPiece)
 {
     fillGrid();
 
@@ -540,7 +540,7 @@ TEST_F(Simulations_TileMatchingPuzzle, CollapseOfTPiece)
     compareReplica(false);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, CollapseOfPlusPiece)
+TEST_F(SimulationsTileMatchingPuzzle, CollapseOfPlusPiece)
 {
     fillGrid();
 
@@ -578,7 +578,7 @@ TEST_F(Simulations_TileMatchingPuzzle, CollapseOfPlusPiece)
     compareReplica(false);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, CollapseOfComplexGroup)
+TEST_F(SimulationsTileMatchingPuzzle, CollapseOfComplexGroup)
 {
     fillGrid();
 
@@ -622,7 +622,7 @@ TEST_F(Simulations_TileMatchingPuzzle, CollapseOfComplexGroup)
     compareReplica(false);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, CollapseOfTwoSeparateLines)
+TEST_F(SimulationsTileMatchingPuzzle, CollapseOfTwoSeparateLines)
 {
     fillGrid();
 
@@ -666,7 +666,7 @@ TEST_F(Simulations_TileMatchingPuzzle, CollapseOfTwoSeparateLines)
     compareReplica(false);
 }
 
-TEST_F(Simulations_TileMatchingPuzzle, CollapseCascadesCorrectly)
+TEST_F(SimulationsTileMatchingPuzzle, CollapseCascadesCorrectly)
 {
     fillGrid();
 

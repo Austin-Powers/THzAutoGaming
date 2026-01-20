@@ -7,7 +7,7 @@
 
 namespace Terrahertz::UnitTests {
 
-struct Input_Parameters : public testing::Test
+struct InputParameters : public testing::Test
 {
     using normal = std::normal_distribution<>;
 
@@ -56,7 +56,7 @@ struct Input_Parameters : public testing::Test
     }
 };
 
-TEST_F(Input_Parameters, CreationReturnsEmptyOptionalIfGivenInvalidParameters)
+TEST_F(InputParameters, CreationReturnsEmptyOptionalIfGivenInvalidParameters)
 {
     testCreationWithInvalidValues(keyDownTimeMean, -1.0);
     testCreationWithInvalidValues(keyUpTimeMean, -1.0);
@@ -73,7 +73,7 @@ TEST_F(Input_Parameters, CreationReturnsEmptyOptionalIfGivenInvalidParameters)
     testCreationWithInvalidValue<std::uint16_t>(wheelSpeed, 0U);
 }
 
-TEST_F(Input_Parameters, DataStoredCorrectly)
+TEST_F(InputParameters, DataStoredCorrectly)
 {
     auto const sut = Input::Parameters::create(normal{keyDownTimeMean, keyDownTimeStdDev},
                                                normal{keyUpTimeMean, keyUpTimeStdDev},
@@ -106,7 +106,7 @@ TEST_F(Input_Parameters, DataStoredCorrectly)
     EXPECT_EQ(sut.wheelResetTime().stddev(), wheelResetTimeStdDev);
 }
 
-TEST_F(Input_Parameters, PresetsValid)
+TEST_F(InputParameters, PresetsValid)
 {
     auto const checkParameters = [](Input::Parameters const &parameters) noexcept {
         EXPECT_TRUE(Input::Parameters::create(parameters.keyDownTime(),

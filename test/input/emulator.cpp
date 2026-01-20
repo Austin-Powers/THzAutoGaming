@@ -15,7 +15,7 @@
 
 namespace Terrahertz::UnitTests {
 
-struct Input_Emulator : public testing::Test
+struct InputEmulator : public testing::Test
 {
     using ms = std::chrono::milliseconds;
 
@@ -387,27 +387,27 @@ struct Input_Emulator : public testing::Test
 };
 
 template <>
-Input::MouseButton &Input_Emulator::MockSystemInterface::getValue(Call &call) noexcept
+Input::MouseButton &InputEmulator::MockSystemInterface::getValue(Call &call) noexcept
 {
     return call.mb;
 }
 template <>
-Input::Key &Input_Emulator::MockSystemInterface::getValue(Call &call) noexcept
+Input::Key &InputEmulator::MockSystemInterface::getValue(Call &call) noexcept
 {
     return call.k;
 }
 template <>
-Input::KeyboardLock &Input_Emulator::MockSystemInterface::getValue(Call &call) noexcept
+Input::KeyboardLock &InputEmulator::MockSystemInterface::getValue(Call &call) noexcept
 {
     return call.l;
 }
 template <>
-std::int16_t &Input_Emulator::MockSystemInterface::getValue(Call &call) noexcept
+std::int16_t &InputEmulator::MockSystemInterface::getValue(Call &call) noexcept
 {
     return call.steps;
 }
 
-TEST_F(Input_Emulator, ConstructionCorrect)
+TEST_F(InputEmulator, ConstructionCorrect)
 {
     EXPECT_EQ(sut.errorCounter(), 0U);
     EXPECT_EQ(sut.actionCountMouse(), 0U);
@@ -415,7 +415,7 @@ TEST_F(Input_Emulator, ConstructionCorrect)
     EXPECT_EQ(sut.strategy(), &strategy);
 }
 
-TEST_F(Input_Emulator, ParametersCorrectAfterConstruction)
+TEST_F(InputEmulator, ParametersCorrectAfterConstruction)
 {
     TestEmulator emulator{Input::Parameters::Human(), systemInterface};
     auto const   strategy = dynamic_cast<Input::NormalDeviationStrategy *>(emulator.strategy());
@@ -433,7 +433,7 @@ TEST_F(Input_Emulator, ParametersCorrectAfterConstruction)
     EXPECT_EQ(expected.wheelResetTime(), actual.wheelResetTime());
 }
 
-TEST_F(Input_Emulator, GetCursorPositionRelaisInformationCorrectly)
+TEST_F(InputEmulator, GetCursorPositionRelaisInformationCorrectly)
 {
     systemInterface.expectGetCursorPosition(23U, 42U, false);
     systemInterface.expectGetCursorPosition(22U, 40U, true);
@@ -446,7 +446,7 @@ TEST_F(Input_Emulator, GetCursorPositionRelaisInformationCorrectly)
     EXPECT_EQ(y, 40U);
 }
 
-TEST_F(Input_Emulator, IsMouseButtonDown)
+TEST_F(InputEmulator, IsMouseButtonDown)
 {
     systemInterface.expectIsDown(Input::MouseButton::Middle, false);
     EXPECT_FALSE(sut.isDown(Input::MouseButton::Middle));
@@ -455,7 +455,7 @@ TEST_F(Input_Emulator, IsMouseButtonDown)
     EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
-TEST_F(Input_Emulator, IsKeyDown)
+TEST_F(InputEmulator, IsKeyDown)
 {
     systemInterface.expectIsDown(Input::Key::Backspace, false);
     EXPECT_FALSE(sut.isDown(Input::Key::Backspace));
@@ -464,7 +464,7 @@ TEST_F(Input_Emulator, IsKeyDown)
     EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
-TEST_F(Input_Emulator, IsKeyboardLockActive)
+TEST_F(InputEmulator, IsKeyboardLockActive)
 {
     systemInterface.expectIsActive(Input::KeyboardLock::Caps, false);
     EXPECT_FALSE(sut.isActive(Input::KeyboardLock::Caps));
@@ -473,7 +473,7 @@ TEST_F(Input_Emulator, IsKeyboardLockActive)
     EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
-TEST_F(Input_Emulator, CommandToDoesNotBlockCaller)
+TEST_F(InputEmulator, CommandToDoesNotBlockCaller)
 {
     strategy.expectCalculateButtonDownTime(ms{2U});
     strategy.expectCalculateButtonUpTime(ms{2U});
@@ -489,7 +489,7 @@ TEST_F(Input_Emulator, CommandToDoesNotBlockCaller)
     EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
-TEST_F(Input_Emulator, KeyDown)
+TEST_F(InputEmulator, KeyDown)
 {
     strategy.expectCalculateKeyDownTime(ms{2U});
     systemInterface.expectDown(Input::Key::Return, false);
@@ -499,7 +499,7 @@ TEST_F(Input_Emulator, KeyDown)
     EXPECT_EQ(sut.errorCounter(), 1U);
 }
 
-TEST_F(Input_Emulator, KeyUp)
+TEST_F(InputEmulator, KeyUp)
 {
     strategy.expectCalculateKeyUpTime(ms{2U});
     systemInterface.expectUp(Input::Key::Return, false);
@@ -509,7 +509,7 @@ TEST_F(Input_Emulator, KeyUp)
     EXPECT_EQ(sut.errorCounter(), 1U);
 }
 
-TEST_F(Input_Emulator, KeyPress)
+TEST_F(InputEmulator, KeyPress)
 {
     strategy.expectCalculateKeyDownTime(ms{2U});
     strategy.expectCalculateKeyUpTime(ms{2U});
@@ -520,7 +520,7 @@ TEST_F(Input_Emulator, KeyPress)
     EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
-TEST_F(Input_Emulator, ButtonDown)
+TEST_F(InputEmulator, ButtonDown)
 {
     strategy.expectCalculateButtonDownTime(ms{2U});
     systemInterface.expectDown(Input::MouseButton::Left, false);
@@ -530,7 +530,7 @@ TEST_F(Input_Emulator, ButtonDown)
     EXPECT_EQ(sut.errorCounter(), 1U);
 }
 
-TEST_F(Input_Emulator, ButtonUp)
+TEST_F(InputEmulator, ButtonUp)
 {
     strategy.expectCalculateButtonUpTime(ms{2U});
     systemInterface.expectUp(Input::MouseButton::Middle, false);
@@ -540,7 +540,7 @@ TEST_F(Input_Emulator, ButtonUp)
     EXPECT_EQ(sut.errorCounter(), 1U);
 }
 
-TEST_F(Input_Emulator, Click)
+TEST_F(InputEmulator, Click)
 {
     strategy.expectCalculateButtonDownTime(ms{2U});
     strategy.expectCalculateButtonUpTime(ms{2U});
@@ -551,7 +551,7 @@ TEST_F(Input_Emulator, Click)
     EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
-TEST_F(Input_Emulator, TurnMouseWheel)
+TEST_F(InputEmulator, TurnMouseWheel)
 {
     strategy.expectCalculateWheelSpeed(100U);
     strategy.expectCalculateWheelResetTime(ms{50U});
@@ -593,7 +593,7 @@ TEST_F(Input_Emulator, TurnMouseWheel)
     EXPECT_EQ(sut.errorCounter(), 1U);
 }
 
-TEST_F(Input_Emulator, MoveToBaseCase)
+TEST_F(InputEmulator, MoveToBaseCase)
 {
     Rectangle const targetArea{50, 100, 100U, 150U};
     auto const      target = targetArea.center();
@@ -629,7 +629,7 @@ TEST_F(Input_Emulator, MoveToBaseCase)
     EXPECT_EQ(sut.errorCounter(), 1U);
 }
 
-TEST_F(Input_Emulator, MoveToNegativeCase)
+TEST_F(InputEmulator, MoveToNegativeCase)
 {
     Rectangle const targetArea{50, 100, 100U, 150U};
     auto const      target = targetArea.center();
@@ -665,7 +665,7 @@ TEST_F(Input_Emulator, MoveToNegativeCase)
     EXPECT_EQ(sut.errorCounter(), 1U);
 }
 
-TEST_F(Input_Emulator, MoveToMovesAtLeastOnePixelPerStep)
+TEST_F(InputEmulator, MoveToMovesAtLeastOnePixelPerStep)
 {
     Rectangle const targetArea{5, 10, 8U, 8U};
     auto const      target = targetArea.center();
@@ -712,7 +712,7 @@ TEST_F(Input_Emulator, MoveToMovesAtLeastOnePixelPerStep)
     EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
-TEST_F(Input_Emulator, MoveToClick)
+TEST_F(InputEmulator, MoveToClick)
 {
     Rectangle const targetArea{100, 100, 50U, 50U};
     auto const      button = Input::MouseButton::XButton1;
@@ -736,7 +736,7 @@ TEST_F(Input_Emulator, MoveToClick)
     EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
-TEST_F(Input_Emulator, DragAndDrop)
+TEST_F(InputEmulator, DragAndDrop)
 {
     Rectangle const startArea{150, 100, 50U, 50U};
     Rectangle const stopArea{250, 100, 25U, 25U};
@@ -767,7 +767,7 @@ TEST_F(Input_Emulator, DragAndDrop)
     EXPECT_EQ(sut.errorCounter(), 0U);
 }
 
-TEST_F(Input_Emulator, Timing)
+TEST_F(InputEmulator, Timing)
 {
     auto const      button = Input::MouseButton::Left;
     auto const      key    = Input::Key::Return;
@@ -886,7 +886,7 @@ TEST_F(Input_Emulator, Timing)
     // key up 2 is what create the last measurement
 }
 
-TEST_F(Input_Emulator, MouseKeyboardActionInterleaving)
+TEST_F(InputEmulator, MouseKeyboardActionInterleaving)
 {
     auto const button = Input::MouseButton::Left;
     auto const key    = Input::Key::Return;
@@ -930,7 +930,7 @@ TEST_F(Input_Emulator, MouseKeyboardActionInterleaving)
     checkTiming(timings[2], 25U); // key up - button up
 }
 
-TEST_F(Input_Emulator, ActionCountMouse)
+TEST_F(InputEmulator, ActionCountMouse)
 {
     auto const      button = Input::MouseButton::Left;
     Rectangle const targetArea{5, 5, 10U, 10U};
@@ -959,7 +959,7 @@ TEST_F(Input_Emulator, ActionCountMouse)
     EXPECT_EQ(sut.actionCountMouse(), 5U);
 }
 
-TEST_F(Input_Emulator, ActionCountKeyboard)
+TEST_F(InputEmulator, ActionCountKeyboard)
 {
     auto const key = Input::Key::A;
 
@@ -980,7 +980,7 @@ TEST_F(Input_Emulator, ActionCountKeyboard)
     EXPECT_EQ(sut.actionCountKeyboard(), 4U);
 }
 
-TEST_F(Input_Emulator, Clear)
+TEST_F(InputEmulator, Clear)
 {
     auto const button = Input::MouseButton::XButton2;
     auto const key    = Input::Key::L;
@@ -1005,7 +1005,7 @@ TEST_F(Input_Emulator, Clear)
     EXPECT_EQ(sut.actionCountMouse(), 0U);
 }
 
-TEST_F(Input_Emulator, ResetPerformsNoActionThatIsNotNeeded)
+TEST_F(InputEmulator, ResetPerformsNoActionThatIsNotNeeded)
 {
 
     systemInterface.expectIsActive(Input::KeyboardLock::Scroll, false);
@@ -1025,7 +1025,7 @@ TEST_F(Input_Emulator, ResetPerformsNoActionThatIsNotNeeded)
     EXPECT_EQ(sut.actionCountMouse(), 0U);
 }
 
-TEST_F(Input_Emulator, ResetDoesNotPerformAClear)
+TEST_F(InputEmulator, ResetDoesNotPerformAClear)
 {
 
     systemInterface.expectIsActive(Input::KeyboardLock::Scroll, false);
@@ -1048,7 +1048,7 @@ TEST_F(Input_Emulator, ResetDoesNotPerformAClear)
     EXPECT_NE(sut.actionCountMouse(), 0U);
 }
 
-TEST_F(Input_Emulator, ResetDeactivatesLocks)
+TEST_F(InputEmulator, ResetDeactivatesLocks)
 {
     strategy.expectCalculateKeyDownTime(ms{2});
     strategy.expectCalculateKeyUpTime(ms{2});
@@ -1082,7 +1082,7 @@ TEST_F(Input_Emulator, ResetDeactivatesLocks)
     waitForSignal(ms{4000});
 }
 
-TEST_F(Input_Emulator, ResetReleasesAllButtons)
+TEST_F(InputEmulator, ResetReleasesAllButtons)
 {
     systemInterface.expectIsActive(Input::KeyboardLock::Scroll, false);
     systemInterface.expectIsActive(Input::KeyboardLock::Num, false);
@@ -1108,7 +1108,7 @@ TEST_F(Input_Emulator, ResetReleasesAllButtons)
     waitForSignal(ms{4000});
 }
 
-TEST_F(Input_Emulator, ResetReleasesAllKeys)
+TEST_F(InputEmulator, ResetReleasesAllKeys)
 {
     systemInterface.expectIsActive(Input::KeyboardLock::Scroll, false);
     systemInterface.expectIsActive(Input::KeyboardLock::Num, false);

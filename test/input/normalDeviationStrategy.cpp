@@ -4,12 +4,12 @@
 
 namespace Terrahertz::UnitTests {
 
-struct Input_NormalDeviationStrategy : public testing::Test
+struct InputNormalDeviationStrategy : public testing::Test
 {
     Input::NormalDeviationStrategy sut{Input::Parameters::Human()};
 };
 
-TEST_F(Input_NormalDeviationStrategy, ParametersGivenAreStoredCorrectly)
+TEST_F(InputNormalDeviationStrategy, ParametersGivenAreStoredCorrectly)
 {
     auto const expected = Input::Parameters::Human();
 
@@ -31,7 +31,7 @@ TEST_F(Input_NormalDeviationStrategy, ParametersGivenAreStoredCorrectly)
     EXPECT_EQ(expected.horizontalSpeedFactor(), actual.horizontalSpeedFactor());
 }
 
-TEST_F(Input_NormalDeviationStrategy, CalculateKeyDownTime)
+TEST_F(InputNormalDeviationStrategy, CalculateKeyDownTime)
 {
     auto const parameter = Input::Parameters::Human().keyDownTime();
     auto const maxValue  = static_cast<std::uint32_t>(parameter.mean() + (3.0 * parameter.stddev()));
@@ -55,7 +55,7 @@ TEST_F(Input_NormalDeviationStrategy, CalculateKeyDownTime)
     EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
 }
 
-TEST_F(Input_NormalDeviationStrategy, CalculateKeyUpTime)
+TEST_F(InputNormalDeviationStrategy, CalculateKeyUpTime)
 {
     auto const parameter = Input::Parameters::Human().keyUpTime();
     auto const maxValue  = static_cast<std::uint32_t>(parameter.mean() + (3.0 * parameter.stddev()));
@@ -79,7 +79,7 @@ TEST_F(Input_NormalDeviationStrategy, CalculateKeyUpTime)
     EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
 }
 
-TEST_F(Input_NormalDeviationStrategy, CalculateButtonDownTime)
+TEST_F(InputNormalDeviationStrategy, CalculateButtonDownTime)
 {
     auto const parameter = Input::Parameters::Human().buttonDownTime();
     auto const maxValue  = static_cast<std::uint32_t>(parameter.mean() + (3.0 * parameter.stddev()));
@@ -103,7 +103,7 @@ TEST_F(Input_NormalDeviationStrategy, CalculateButtonDownTime)
     EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
 }
 
-TEST_F(Input_NormalDeviationStrategy, CalculateButtonUpTime)
+TEST_F(InputNormalDeviationStrategy, CalculateButtonUpTime)
 {
     auto const parameter = Input::Parameters::Human().buttonUpTime();
     auto const maxValue  = static_cast<std::uint32_t>(parameter.mean() + (3.0 * parameter.stddev()));
@@ -127,7 +127,7 @@ TEST_F(Input_NormalDeviationStrategy, CalculateButtonUpTime)
     EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
 }
 
-TEST_F(Input_NormalDeviationStrategy, CalculateTargetIn)
+TEST_F(InputNormalDeviationStrategy, CalculateTargetIn)
 {
     Rectangle const targetArea{160, 90, 320, 180};
 
@@ -148,7 +148,7 @@ TEST_F(Input_NormalDeviationStrategy, CalculateTargetIn)
     EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
 }
 
-TEST_F(Input_NormalDeviationStrategy, CalculateSpeed)
+TEST_F(InputNormalDeviationStrategy, CalculateSpeed)
 {
     auto const parameter = Input::Parameters::Human().cursorSpeed();
     auto const maxValue  = static_cast<std::uint32_t>(parameter.mean() + (3.0 * parameter.stddev()));
@@ -172,12 +172,12 @@ TEST_F(Input_NormalDeviationStrategy, CalculateSpeed)
     EXPECT_LT(lastAndCurrentAreEqualCounter, 3U);
 }
 
-TEST_F(Input_NormalDeviationStrategy, CalculateHorizontalSpeedFactor)
+TEST_F(InputNormalDeviationStrategy, CalculateHorizontalSpeedFactor)
 {
     EXPECT_EQ(Input::Parameters::Human().horizontalSpeedFactor(), sut.calculateHorizontalSpeedFactor());
 }
 
-TEST_F(Input_NormalDeviationStrategy, CalculateWheelSteps)
+TEST_F(InputNormalDeviationStrategy, CalculateWheelSteps)
 {
     auto const limit = Input::Parameters::Human().wheelStepsPerPush();
     EXPECT_EQ(sut.calculateWheelSteps(limit + 1), limit);
@@ -189,12 +189,12 @@ TEST_F(Input_NormalDeviationStrategy, CalculateWheelSteps)
     EXPECT_EQ(sut.calculateWheelSteps(-1 - limit), 0 - limit);
 }
 
-TEST_F(Input_NormalDeviationStrategy, CalculateWheelSpeed)
+TEST_F(InputNormalDeviationStrategy, CalculateWheelSpeed)
 {
     EXPECT_EQ(Input::Parameters::Human().wheelSpeed(), sut.calculateWheelSpeed());
 }
 
-TEST_F(Input_NormalDeviationStrategy, CalculateWheelResetTime)
+TEST_F(InputNormalDeviationStrategy, CalculateWheelResetTime)
 {
     auto const parameter = Input::Parameters::Human().wheelResetTime();
     auto const maxValue  = static_cast<std::uint32_t>(parameter.mean() + (3.0 * parameter.stddev()));

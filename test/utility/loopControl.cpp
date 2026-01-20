@@ -12,31 +12,31 @@ public:
     bool check() noexcept override { return returnValue; }
 };
 
-struct Utility_LoopControl : public testing::Test
+struct UtilityLoopControl : public testing::Test
 {
     std::uint32_t measureIntervalInMs(LoopControl &sut) { return 0U; }
 };
 
-TEST_F(Utility_LoopControl, DefaultIntervalCorrect)
+TEST_F(UtilityLoopControl, DefaultIntervalCorrect)
 {
     LoopControl sut{};
     EXPECT_EQ(sut.currentInterval().count(), 100U);
 }
 
-TEST_F(Utility_LoopControl, WaitReturnsTrueByDefault)
+TEST_F(UtilityLoopControl, WaitReturnsTrueByDefault)
 {
     LoopControl sut{};
     EXPECT_TRUE(sut.wait());
 }
 
-TEST_F(Utility_LoopControl, WaitReturnsFalseAfterShutdownWasCalled)
+TEST_F(UtilityLoopControl, WaitReturnsFalseAfterShutdownWasCalled)
 {
     LoopControl sut{};
     sut.shutdown();
     EXPECT_FALSE(sut.wait());
 }
 
-TEST_F(Utility_LoopControl, IntervalUpdate)
+TEST_F(UtilityLoopControl, IntervalUpdate)
 {
     LoopControl sut{};
     EXPECT_FALSE(sut.updateInterval(Ms{-12}));
@@ -47,7 +47,7 @@ TEST_F(Utility_LoopControl, IntervalUpdate)
     EXPECT_EQ(sut.currentInterval().count(), 12U);
 }
 
-TEST_F(Utility_LoopControl, IntervalMostlyCorrect)
+TEST_F(UtilityLoopControl, IntervalMostlyCorrect)
 {
     LoopControl sut{};
     EXPECT_TRUE(sut.updateInterval(Ms{10}));
@@ -70,7 +70,7 @@ TEST_F(Utility_LoopControl, IntervalMostlyCorrect)
     EXPECT_EQ(i, 10U);
 }
 
-TEST_F(Utility_LoopControl, AddingNullptrConditionDoesNotCauseProblems)
+TEST_F(UtilityLoopControl, AddingNullptrConditionDoesNotCauseProblems)
 {
     LoopControl sut{};
     EXPECT_TRUE(sut.updateInterval(Ms{10}));
@@ -80,7 +80,7 @@ TEST_F(Utility_LoopControl, AddingNullptrConditionDoesNotCauseProblems)
     EXPECT_FALSE(sut.wait());
 }
 
-TEST_F(Utility_LoopControl, AddingCondition)
+TEST_F(UtilityLoopControl, AddingCondition)
 {
     LoopControl   sut{};
     MockCondition condition{};
@@ -92,7 +92,7 @@ TEST_F(Utility_LoopControl, AddingCondition)
     EXPECT_FALSE(sut.wait());
 }
 
-TEST_F(Utility_LoopControl, OneOfManyConditionsIsEnoughToShutdown)
+TEST_F(UtilityLoopControl, OneOfManyConditionsIsEnoughToShutdown)
 {
     LoopControl   sut{};
     MockCondition condition0{};
