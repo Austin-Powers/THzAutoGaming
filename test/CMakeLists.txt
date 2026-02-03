@@ -6,7 +6,9 @@ add_executable(${PROJECTNAME}
 	input/parameters.cpp
 	optimisation/evolution/algorithm.cpp
 	simulations/tileMatchingPuzzle.cpp
- "utility/loopControl.cpp")
+	utility/imageLoader.cpp
+	utility/loopControl.cpp
+)
 
 target_include_directories(${PROJECTNAME} PUBLIC
 	${PROJECT_SOURCE_DIR}
