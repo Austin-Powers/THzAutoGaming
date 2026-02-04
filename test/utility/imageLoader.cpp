@@ -97,6 +97,7 @@ TEST_F(UtilityImageLoader, LoadingMiniHSVImages)
     TestImageGenerator              generator{Rectangle{16U, 16U}};
     (void)baseImage.image().readFrom(generator);
     ImageProcessing::DataReductionNode expectedImage{baseImage, 1U, 1U};
+    EXPECT_TRUE(expectedImage.next());
 
     EXPECT_EQ(image0, expectedImage[0U]);
     EXPECT_EQ(image1, expectedImage[0U]);
@@ -120,6 +121,7 @@ TEST_F(UtilityImageLoader, LoadingSameImageIntoMiniHSVAndBGRA)
     TestImageGenerator              generator{Rectangle{16U, 16U}};
     (void)baseImage.image().readFrom(generator);
     ImageProcessing::DataReductionNode expectedImage{baseImage, 1U, 1U};
+    EXPECT_TRUE(expectedImage.next());
 
     EXPECT_EQ(image0, baseImage.image());
     EXPECT_EQ(image1, baseImage.image());

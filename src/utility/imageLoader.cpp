@@ -26,7 +26,7 @@ void ImageLoader::registerImage(BGRAImage &buffer, std::filesystem::path const f
 
 void ImageLoader::registerImage(MiniHSVImage &buffer, std::filesystem::path const filepath) noexcept
 {
-    _miniHsvImages.emplace(filepath, &buffer);
+    _miniHsvImages.emplace((_directorypath / filepath), &buffer);
 }
 
 std::uint16_t ImageLoader::loadImages() noexcept
