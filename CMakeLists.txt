@@ -26,7 +26,7 @@ FetchContent_Declare(
 FetchContent_Declare(
 	THzImage
 	GIT_REPOSITORY https://github.com/Austin-Powers/THzImage
-	GIT_TAG        0b83a119c44acf41d2f78e8910446a79dbebd63a # latest 10.12.25
+	GIT_TAG        3ccde03906dd16ad1f1e97a1fc665cd4cf4e3091 # latest 04.02.26
 )
 FetchContent_Declare(
 	gsl
@@ -68,7 +68,7 @@ add_library(${PROJECT_NAME} STATIC
 	include/THzAutoGaming/utility/iCondition.hpp
 	include/THzAutoGaming/utility/imageLoader.hpp
 	include/THzAutoGaming/utility/loopControl.hpp
-)
+ "src/action/handler.cpp")
 
 target_include_directories(${PROJECT_NAME} PUBLIC
 	${PROJECT_SOURCE_DIR}/include
