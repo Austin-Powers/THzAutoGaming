@@ -38,6 +38,8 @@ public:
     /// @remark Any condition being met will trigger shutdown.
     void addShutdownCondition(ICondition *const condition) noexcept;
 
+    // TODO Add skip condition to skip rounds, in order to wait for input emulation to finish etc.
+
 private:
     /// @brief Flag signalling if the loop is still running.
     bool _running{true};

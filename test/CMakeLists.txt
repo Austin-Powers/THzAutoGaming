@@ -1,6 +1,7 @@
 set(PROJECTNAME THzAutoGaming.Tests)
 
 add_executable(${PROJECTNAME}
+	action/handler.cpp
 	input/emulator.cpp
 	input/normalDeviationStrategy.cpp
 	input/parameters.cpp
