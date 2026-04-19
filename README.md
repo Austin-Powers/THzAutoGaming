@@ -4,9 +4,9 @@ Fun projects all around automated playing of computer games.
 Below is more detailed information about the contents of each subdirectory.
 
 ### Action
-- __`class ActionHandler`__ _(handler.hpp)_ Uses processed screenshots to determine what actions to perform.
+- __`class Handler`__ _(handler.hpp)_ Uses processed screenshots to determine what actions to perform.
   
-- __`class IAction`__ _(iAction.hpp)_ Interface for actions.
+- __`class ITriggerAction`__ _(iTriggerAction.hpp)_ Interface for trigger based actions.
   
 
 ### Common

@@ -46,6 +46,7 @@ if(NOT DEFINED THzImage_SOURCE_DIR)
 endif()
 
 add_library(${PROJECT_NAME} STATIC
+	src/action/handler.cpp
 	src/input/linuxInterface.cpp
 	src/input/normalDeviationStrategy.cpp
 	src/input/parameters.cpp
@@ -55,6 +56,8 @@ add_library(${PROJECT_NAME} STATIC
 	src/utility/imageLoader.cpp
 	src/utility/loopControl.cpp
 
+	include/THzAutoGaming/action/handler.hpp
+	include/THzAutoGaming/action/iTriggerAction.hpp
 	include/THzAutoGaming/input/common.hpp
 	include/THzAutoGaming/input/emulator.hpp
 	include/THzAutoGaming/input/iDeviationStrategy.hpp
@@ -68,7 +71,7 @@ add_library(${PROJECT_NAME} STATIC
 	include/THzAutoGaming/utility/iCondition.hpp
 	include/THzAutoGaming/utility/imageLoader.hpp
 	include/THzAutoGaming/utility/loopControl.hpp
- "src/action/handler.cpp")
+)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
 	${PROJECT_SOURCE_DIR}/include

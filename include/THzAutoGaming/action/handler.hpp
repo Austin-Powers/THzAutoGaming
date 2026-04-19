@@ -1,8 +1,7 @@
 #ifndef THZ_AUTOGAMING_ACTION_HANDLER_HPP
 #define THZ_AUTOGAMING_ACTION_HANDLER_HPP
 
-#include "THzAutoGaming/action/iAction.hpp"
-#include "THzAutoGaming/input/emulator.hpp"
+#include "THzAutoGaming/action/iTriggerAction.hpp"
 #include "THzImage/common/pixel.hpp"
 #include "THzImage/processing/iNode.hpp"
 
@@ -15,22 +14,19 @@ public:
     /// @brief Initializes a new ActionHandler.
     ///
     /// @param input The node used for inputting images the handler works with.
-    Handler(ImageProcessing::INode<BGRAPixel> *const imageInput, Input::Emulator *const emulator) noexcept;
+    Handler(ImageProcessing::INode<BGRAPixel> *const imageInput) noexcept;
 
-    /// @brief Adds a new action the the handler.
+    /// @brief Adds a new trigger action the the handler.
     ///
-    /// @param action The action to add.
-    void addAction(IAction *const action) noexcept;
+    /// @param action The trigger action to add.
+    void addTriggerAction(ITriggerAction *const action) noexcept;
 
     /// @brief Retrieves the next image from the input node and performs actions based on the image.
     ///
     /// @return True if operation was successful, false otherwise.
     bool next() noexcept;
 
-    // TODO Add ScannerAction and TriggerAction
-    // Scanner will get an image (BGRA or MINIHSV) and scan the image for stuff
-    // Trigger will Akt like the Current IAction
-    // TriggerActions can be dealt with by a specific internal ScannerAction
+    // TODO Add ScannerAction that will be handed an image (BGRA or MINIHSV) and scans it
 };
 
 } // namespace Terrahertz::Action
