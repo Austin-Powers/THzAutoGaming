@@ -22,6 +22,106 @@
 #include <utility>
 
 namespace Terrahertz::Input {
+namespace Internal {
+
+/// @brief Data structure for a single mouse related action performed by the emulator.
+struct MouseAction
+{
+    /// @brief The type of action.
+    enum class Type : std::uint8_t
+    {
+        /// @brief No action just wait.
+        None,
+
+        /// @brief Release key or button.
+        Up,
+
+        /// @brief Push key or button.
+        Down,
+
+        /// @brief Moves the cursor to a given position.
+        Move,
+
+        /// @brief Turns the mouse wheel.
+        Turn,
+
+        /// @brief Sync up with the keyboard.
+        Sync
+    };
+
+    /// @brief The type of the action.
+    Type type;
+
+    /// @brief The time to wait after this action before the next one is executed or the update interval for the
+    /// move command.
+    Ms cooldown;
+
+    /// @brief The additional cooldown after the current push has been finished.
+    ///
+    /// @remark Not part of the union as this would cause a build error on linux.
+    Ms pushCooldown;
+
+    union
+    {
+        /// @brief The button of the action.
+        MouseButton button;
+
+        struct
+        {
+            /// @brief The x coordinate for move actions.
+            std::uint32_t x;
+
+            /// @brief The y coordinate for move actions.
+            std::uint32_t y;
+
+            /// @brief The amount of pixels traveled vertically over the interval stored in cooldown.
+            double speed;
+
+            /// @brief The factor to get from vertical to horizontal cursor speed.
+            double factor;
+        };
+
+        struct
+        {
+            /// @brief The steps left to do, positive or negative depending on the direction.
+            std::int16_t stepsLeft;
+
+            /// @brief The steps done per cool%own interval.
+            std::int16_t stepsPerInterval;
+        };
+    };
+};
+
+/// @brief Data structure for a single keyboard related action performed by the emulator.
+struct KeyboardAction
+{
+    /// @brief The type of action.
+    enum class Type : std::uint8_t
+    {
+        /// @brief No action just wait.
+        None,
+
+        /// @brief Release key or button.
+        Up,
+
+        /// @brief Push key or button.
+        Down,
+
+        /// @brief Sync up with the mouse.
+        Sync
+    };
+
+    /// @brief The type of the action.
+    Type type;
+
+    /// @brief The time to wait after this action before the next one is executed.
+    Ms cooldown;
+
+    /// @brief The key of the action.
+    Key key;
+};
+
+} // namespace Internal
 
 /// @brief Emulates user input via keyboard and mouse.
 template <SystemInterface TSystemInterface>
@@ -107,11 +207,11 @@ public:
     {
         if (mouse)
         {
-            addMouseAction(MouseAction::Type::None, duration);
+            addMouseAction(Internal::MouseAction::Type::None, duration);
         }
         else
         {
-            addKeyboardAction(KeyboardAction::Type::None, duration);
+            addKeyboardAction(Internal::KeyboardAction::Type::None, duration);
         }
     }
 
@@ -163,11 +263,11 @@ public:
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
 
-        MouseAction mouseAction{};
-        mouseAction.type = MouseAction::Type::Sync;
+        Internal::MouseAction mouseAction{};
+        mouseAction.type = Internal::MouseAction::Type::Sync;
         _mouseActions.emplace_back(mouseAction);
-        KeyboardAction keyboardAction{};
-        keyboardAction.type = KeyboardAction::Type::Sync;
+        Internal::KeyboardAction keyboardAction{};
+        keyboardAction.type = Internal::KeyboardAction::Type::Sync;
         _keyboardActions.emplace_back(keyboardAction);
     }
 
@@ -180,7 +280,7 @@ public:
         auto const target = _strategy->calculateTargetIn(targetArea);
         auto const speed  = _strategy->calculateSpeed() / rate;
         auto const factor = _strategy->calculateHorizontalSpeedFactor() - 1.0;
-        addMouseAction(MouseAction::Type::Move, Ms{1000U / rate}, target.x, target.y, speed, factor);
+        addMouseAction(Internal::MouseAction::Type::Move, Ms{1000U / rate}, target.x, target.y, speed, factor);
     }
 
     /// @brief Clicks with the given mouse button.
@@ -220,7 +320,7 @@ public:
     /// @param button The button to press down.
     void down(MouseButton const button) noexcept
     {
-        addMouseAction(MouseAction::Type::Down, _strategy->calculateButtonDownTime(), button);
+        addMouseAction(Internal::MouseAction::Type::Down, _strategy->calculateButtonDownTime(), button);
     }
 
     /// @brief Releases the given mouse button.
@@ -228,7 +328,7 @@ public:
     /// @param button The mouse button to release.
     void up(MouseButton const button) noexcept
     {
-        addMouseAction(MouseAction::Type::Up, _strategy->calculateButtonUpTime(), button);
+        addMouseAction(Internal::MouseAction::Type::Up, _strategy->calculateButtonUpTime(), button);
     }
 
     /// @brief Turns the mouse wheel.
@@ -256,7 +356,7 @@ public:
             {
                 stepsPerInterval = -stepsPerInterval;
             }
-            addMouseAction(MouseAction::Type::Turn, cooldown, pushCooldown, chunk, stepsPerInterval);
+            addMouseAction(Internal::MouseAction::Type::Turn, cooldown, pushCooldown, chunk, stepsPerInterval);
             steps -= chunk;
         }
     }
@@ -266,7 +366,7 @@ public:
     /// @param key The key to press down.
     void down(Key const key) noexcept
     {
-        addKeyboardAction(KeyboardAction::Type::Down, _strategy->calculateKeyDownTime(), key);
+        addKeyboardAction(Internal::KeyboardAction::Type::Down, _strategy->calculateKeyDownTime(), key);
     }
 
     /// @brief Releases the given key.
@@ -274,7 +374,7 @@ public:
     /// @param key The key to release.
     void up(Key const key) noexcept
     {
-        addKeyboardAction(KeyboardAction::Type::Up, _strategy->calculateKeyUpTime(), key);
+        addKeyboardAction(Internal::KeyboardAction::Type::Up, _strategy->calculateKeyUpTime(), key);
     }
 
     /// @brief Presses and releases the given key.
@@ -291,112 +391,17 @@ public:
     /// @param string The string to enter.
     void enterString(std::string_view const string) noexcept {}
 
+    void enterNumber(std::int32_t const number) noexcept {}
+
 private:
-    /// @brief Data structure for a single mouse related action performed by the emulator.
-    struct MouseAction
-    {
-        /// @brief The type of action.
-        enum class Type : std::uint8_t
-        {
-            /// @brief No action just wait.
-            None,
-
-            /// @brief Release key or button.
-            Up,
-
-            /// @brief Push key or button.
-            Down,
-
-            /// @brief Moves the cursor to a given position.
-            Move,
-
-            /// @brief Turns the mouse wheel.
-            Turn,
-
-            /// @brief Sync up with the keyboard.
-            Sync
-        };
-
-        /// @brief The type of the action.
-        Type type;
-
-        /// @brief The time to wait after this action before the next one is executed or the update interval for the
-        /// move command.
-        Ms cooldown;
-
-        /// @brief The additional cooldown after the current push has been finished.
-        ///
-        /// @remark Not part of the union as this would cause a build error on linux.
-        Ms pushCooldown;
-
-        union
-        {
-            /// @brief The button of the action.
-            MouseButton button;
-
-            struct
-            {
-                /// @brief The x coordinate for move actions.
-                std::uint32_t x;
-
-                /// @brief The y coordinate for move actions.
-                std::uint32_t y;
-
-                /// @brief The amount of pixels traveled vertically over the interval stored in cooldown.
-                double speed;
-
-                /// @brief The factor to get from vertical to horizontal cursor speed.
-                double factor;
-            };
-
-            struct
-            {
-                /// @brief The steps left to do, positive or negative depending on the direction.
-                std::int16_t stepsLeft;
-
-                /// @brief The steps done per cool%own interval.
-                std::int16_t stepsPerInterval;
-            };
-        };
-    };
-
-    /// @brief Data structure for a single keyboard related action performed by the emulator.
-    struct KeyboardAction
-    {
-        /// @brief The type of action.
-        enum class Type : std::uint8_t
-        {
-            /// @brief No action just wait.
-            None,
-
-            /// @brief Release key or button.
-            Up,
-
-            /// @brief Push key or button.
-            Down,
-
-            /// @brief Sync up with the mouse.
-            Sync
-        };
-
-        /// @brief The type of the action.
-        Type type;
-
-        /// @brief The time to wait after this action before the next one is executed.
-        Ms cooldown;
-
-        /// @brief The key of the action.
-        Key key;
-    };
-
     /// @brief Emplaces a new button related MouseAction instance at the back of the _mouseActions queue.
     ///
     /// @param type The type of the action.
     /// @param cooldown The cooldown of the action.
     /// @param button The button of the action, Left by default.
-    void addMouseAction(MouseAction::Type const type,
-                        Ms const                cooldown,
-                        MouseButton const       button = MouseButton::Left) noexcept
+    void addMouseAction(Internal::MouseAction::Type const type,
+                        Ms const                          cooldown,
+                        MouseButton const                 button = MouseButton::Left) noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
         if (_mouseActions.empty())
@@ -419,12 +424,12 @@ private:
     /// @param y The target y coordonate.
     /// @param speed The speed at which to approach the target [pxl/cooldown]
     /// @param factor The horizontal speed scaling factor.
-    void addMouseAction(MouseAction::Type const type,
-                        Ms const                cooldown,
-                        std::uint32_t const     x,
-                        std::uint32_t const     y,
-                        double const            speed,
-                        double const            factor) noexcept
+    void addMouseAction(Internal::MouseAction::Type const type,
+                        Ms const                          cooldown,
+                        std::uint32_t const               x,
+                        std::uint32_t const               y,
+                        double const                      speed,
+                        double const                      factor) noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
         if (_mouseActions.empty())
@@ -449,11 +454,11 @@ private:
     /// @param pushCooldown The additional cooldown after the current push has been finished.
     /// @param stepsLeft The steps left to do, positive or negative depending on the direction.
     /// @param stepsPerInterval The steps done per cool%own interval.
-    void addMouseAction(MouseAction::Type const type,
-                        Ms const                cooldown,
-                        Ms const                pushCooldown,
-                        std::int16_t const      stepsLeft,
-                        std::int16_t const      stepsPerInterval) noexcept
+    void addMouseAction(Internal::MouseAction::Type const type,
+                        Ms const                          cooldown,
+                        Ms const                          pushCooldown,
+                        std::int16_t const                stepsLeft,
+                        std::int16_t const                stepsPerInterval) noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
         if (_mouseActions.empty())
@@ -475,7 +480,8 @@ private:
     /// @param type The type of the action.
     /// @param cooldown The cooldown of the action.
     /// @param key The key of the action (optional).
-    void addKeyboardAction(KeyboardAction::Type const type, Ms const cooldown, Key const key = Key::Space) noexcept
+    void
+    addKeyboardAction(Internal::KeyboardAction::Type const type, Ms const cooldown, Key const key = Key::Space) noexcept
     {
         WorkerThread::UniqueLock lock{_worker.mutex};
         if (_keyboardActions.empty())
@@ -502,8 +508,8 @@ private:
 
             if (!_mouseActions.empty() && !_keyboardActions.empty())
             {
-                if ((_mouseActions[0U].type == MouseAction::Type::Sync) &&
-                    (_keyboardActions[0U].type == KeyboardAction::Type::Sync))
+                if ((_mouseActions[0U].type == Internal::MouseAction::Type::Sync) &&
+                    (_keyboardActions[0U].type == Internal::KeyboardAction::Type::Sync))
                 {
                     _mouseActions.pop_front();
                     _keyboardActions.pop_front();
@@ -512,7 +518,7 @@ private:
                     // we need to check again if queues are not empty
                     continue;
                 }
-                if ((_keyboardActions[0U].type == KeyboardAction::Type::Sync) ||
+                if ((_keyboardActions[0U].type == Internal::KeyboardAction::Type::Sync) ||
                     (_nextMouseAction < _nextKeyboardAction))
                 {
                     performNextMouseAction();
@@ -542,11 +548,11 @@ private:
         {
             return Clock::now() + std::chrono::milliseconds{1000U};
         }
-        if (_mouseActions.empty() || (_mouseActions[0U].type == MouseAction::Type::Sync))
+        if (_mouseActions.empty() || (_mouseActions[0U].type == Internal::MouseAction::Type::Sync))
         {
             return _nextKeyboardAction;
         }
-        if (_keyboardActions.empty() || (_keyboardActions[0U].type == KeyboardAction::Type::Sync))
+        if (_keyboardActions.empty() || (_keyboardActions[0U].type == Internal::KeyboardAction::Type::Sync))
         {
             return _nextMouseAction;
         }
@@ -581,7 +587,7 @@ private:
         _nextMouseAction += nextAction.cooldown;
         switch (nextAction.type)
         {
-        case MouseAction::Type::Move: {
+        case Internal::MouseAction::Type::Move: {
             std::uint32_t x;
             std::uint32_t y;
             if (!_interface.getCursorPosition(x, y))
@@ -622,7 +628,7 @@ private:
             }
             break;
         }
-        case MouseAction::Type::Down: {
+        case Internal::MouseAction::Type::Down: {
             if (!_interface.down(nextAction.button))
             {
                 ++_errorCounter;
@@ -633,7 +639,7 @@ private:
             }
             break;
         }
-        case MouseAction::Type::Up: {
+        case Internal::MouseAction::Type::Up: {
             if (!_interface.up(nextAction.button))
             {
                 ++_errorCounter;
@@ -644,7 +650,7 @@ private:
             }
             break;
         }
-        case MouseAction::Type::Turn: {
+        case Internal::MouseAction::Type::Turn: {
             auto const steps = (nextAction.stepsPerInterval < 0)
                                    ? std::max(nextAction.stepsLeft, nextAction.stepsPerInterval)
                                    : std::min(nextAction.stepsLeft, nextAction.stepsPerInterval);
@@ -677,7 +683,7 @@ private:
         _nextKeyboardAction += nextAction.cooldown;
         switch (nextAction.type)
         {
-        case KeyboardAction::Type::Down:
+        case Internal::KeyboardAction::Type::Down:
             if (!_interface.down(nextAction.key))
             {
                 ++_errorCounter;
@@ -687,7 +693,7 @@ private:
                 _keyboardActions.pop_front();
             }
             break;
-        case KeyboardAction::Type::Up:
+        case Internal::KeyboardAction::Type::Up:
             if (!_interface.up(nextAction.key))
             {
                 ++_errorCounter;
@@ -720,13 +726,13 @@ private:
     TimePoint _nextMouseAction{};
 
     /// @brief The list containing all mouse actions to be executed.
-    std::deque<MouseAction> _mouseActions{};
+    std::deque<Internal::MouseAction> _mouseActions{};
 
     /// @brief The time point to execute the next keyboard action.
     TimePoint _nextKeyboardAction{};
 
     /// @brief The list containing all keyboard action to be executed.
-    std::deque<KeyboardAction> _keyboardActions{};
+    std::deque<Internal::KeyboardAction> _keyboardActions{};
 
     /// @brief Counter for the error during the execution.
     std::uint32_t _errorCounter{};

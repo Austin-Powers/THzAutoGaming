@@ -21,6 +21,8 @@ Below is more detailed information about the contents of each subdirectory.
 - __`enum Key`__ _(common.hpp)_ Enumeration of keys on the keyboard.
 - __`concept SystemInterface`__ _(common.hpp)_ Concept for the system interface used to 
   
+- __`struct MouseAction`__ _(emulator.hpp)_ Data structure for a single mouse related action performed by the emulator.
+- __`struct KeyboardAction`__ _(emulator.hpp)_ Data structure for a single keyboard related action performed by the emulator.
 - __`class BaseEmulator`__ _(emulator.hpp)_ Emulates user input via keyboard and mouse.
 - __`definition Emulator`__ _(emulator.hpp)_ The emulator using the current system interface.
 - __`definition Emulator`__ _(emulator.hpp)_ The emulator using the current system interface.
