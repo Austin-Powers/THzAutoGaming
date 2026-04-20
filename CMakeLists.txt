@@ -21,12 +21,12 @@ FetchContent_Declare(
 FetchContent_Declare(
 	THzCommon
 	GIT_REPOSITORY https://github.com/Austin-Powers/THzCommon
-	GIT_TAG        319ba1236d6cf716ecda4b6bf9e722d57b7c1405 # latest 28.11.25
+    GIT_TAG        81009f04cc9bc9eb8b2164edb73e863d6f0b85b8 # latest 2026-04-19
 )
 FetchContent_Declare(
 	THzImage
 	GIT_REPOSITORY https://github.com/Austin-Powers/THzImage
-	GIT_TAG        3ccde03906dd16ad1f1e97a1fc665cd4cf4e3091 # latest 04.02.26
+    GIT_TAG        09f90f4974944fcabf1f4c9b84de2186727ee6cb # latest 2026-04-19
 )
 FetchContent_Declare(
 	gsl

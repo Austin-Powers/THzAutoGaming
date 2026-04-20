@@ -391,6 +391,9 @@ public:
     /// @param string The string to enter.
     void enterString(std::string_view const string) noexcept {}
 
+    /// @brief Enters the given number via the keyboard.
+    ///
+    /// @param number The number to enter.
     void enterNumber(std::int32_t const number) noexcept {}
 
 private:
