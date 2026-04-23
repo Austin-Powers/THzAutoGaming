@@ -371,6 +371,14 @@ struct InputEmulator : public testing::Test
         EXPECT_EQ(sut.actionCountKeyboard(), 0U);
     }
 
+    void setupExpectedKeyPress(Input::Key const key) noexcept
+    {
+        strategy.expectCalculateKeyDownTime(ms{2});
+        systemInterface.expectDown(key, true);
+        strategy.expectCalculateKeyUpTime(ms{2});
+        systemInterface.expectUp(key, true);
+    }
+
     std::mutex mutex{};
 
     std::condition_variable emptyCallsSignal{};
@@ -1132,6 +1140,38 @@ TEST_F(InputEmulator, ResetReleasesAllKeys)
     sut.wait(false, ms{10});
     sut.reset();
     waitForSignal(ms{16000});
+}
+
+TEST_F(InputEmulator, EnterNumber)
+{
+    setupExpectedKeyPress(Input::Key::Number0);
+
+    setupExpectedKeyPress(Input::Key::Subtract);
+    setupExpectedKeyPress(Input::Key::Number1);
+
+    setupExpectedKeyPress(Input::Key::Number0);
+    setupExpectedKeyPress(Input::Key::Number0);
+
+    setupExpectedKeyPress(Input::Key::Subtract);
+    setupExpectedKeyPress(Input::Key::Number0);
+    setupExpectedKeyPress(Input::Key::Number0);
+    setupExpectedKeyPress(Input::Key::Number0);
+    setupExpectedKeyPress(Input::Key::Number3);
+
+    setupExpectedKeyPress(Input::Key::Number8);
+    setupExpectedKeyPress(Input::Key::Number9);
+
+    setupExpectedKeyPress(Input::Key::Number9);
+    setupExpectedKeyPress(Input::Key::Number8);
+
+    sut.enterNumber(0);
+    sut.enterNumber(-1);
+    sut.enterNumber(0, 2U);
+    sut.enterNumber(-3, 4U);
+    sut.enterNumber(89);
+    sut.enterNumber(98, 2U);
+
+    waitForSignal(ms{4000});
 }
 
 } // namespace Terrahertz::UnitTests

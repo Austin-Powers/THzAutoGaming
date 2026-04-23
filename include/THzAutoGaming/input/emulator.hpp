@@ -17,6 +17,7 @@
 #endif
 
 #include <algorithm>
+#include <array>
 #include <deque>
 #include <string_view>
 #include <utility>
@@ -394,7 +395,44 @@ public:
     /// @brief Enters the given number via the keyboard.
     ///
     /// @param number The number to enter.
-    void enterNumber(std::int32_t const number) noexcept {}
+    /// @param zeroPaddedDigits The number of digits that will be zero padded if
+    void enterNumber(std::int32_t const number, std::uint8_t const zeroPaddedDigits = 0U) noexcept
+    {
+        std::array<Key, 10U> keys{};
+        // Deal with padding
+        auto padding = zeroPaddedDigits;
+        if (padding == 0U)
+        {
+            ++padding;
+        }
+        for (auto i = 0U; i < padding; ++i)
+        {
+            keys[i] = Key::Number0;
+        }
+
+        auto absNumber = std::abs(number);
+        // The number for which the most keypresses are needed is 2147483648 with 10
+        for (auto i = 0U; (i < keys.size()) && (absNumber != 0); ++i)
+        {
+            auto const digit = static_cast<std::uint8_t>(absNumber % 10) + static_cast<std::uint8_t>(Key::Number0);
+            keys[i]          = static_cast<Key>(digit);
+            absNumber /= 10;
+        }
+
+        // Enter the number
+        if (number < 0)
+        {
+            press(Key::Subtract);
+        }
+        for (auto i = keys.size(); i != 0U; --i)
+        {
+            auto const key = keys[i - 1];
+            if (key != Key::None)
+            {
+                press(key);
+            }
+        }
+    }
 
 private:
     /// @brief Emplaces a new button related MouseAction instance at the back of the _mouseActions queue.
