@@ -1,15 +1,32 @@
 #include "THzAutoGaming/utility/loopControl.hpp"
 
+#include <chrono>
 #include <gtest/gtest.h>
+
+using std::chrono::duration_cast;
+using ms = std::chrono::milliseconds;
+
+#define NOW_MS duration_cast<ms>(std::chrono::system_clock::now().time_since_epoch()).count()
 
 namespace Terrahertz::UnitTests {
 
 class MockCondition : public ICondition
 {
 public:
-    bool returnValue = false;
+    std::uint8_t returnTrueFor = 0U;
 
-    bool check() noexcept override { return returnValue; }
+    std::uint8_t timesCalled = 0U;
+
+    bool check() noexcept override
+    {
+        ++timesCalled;
+        if (returnTrueFor > 0U)
+        {
+            --returnTrueFor;
+            return true;
+        }
+        return false;
+    }
 };
 
 struct UtilityLoopControl : public testing::Test
@@ -75,12 +92,13 @@ TEST_F(UtilityLoopControl, AddingNullptrConditionDoesNotCauseProblems)
     LoopControl sut{};
     EXPECT_TRUE(sut.updateInterval(Ms{10}));
     sut.addShutdownCondition(nullptr);
+    sut.addSkipCondition(nullptr);
     EXPECT_TRUE(sut.wait());
     sut.shutdown();
     EXPECT_FALSE(sut.wait());
 }
 
-TEST_F(UtilityLoopControl, AddingCondition)
+TEST_F(UtilityLoopControl, AddingShutdownCondition)
 {
     LoopControl   sut{};
     MockCondition condition{};
@@ -88,8 +106,10 @@ TEST_F(UtilityLoopControl, AddingCondition)
     EXPECT_TRUE(sut.updateInterval(Ms{10}));
     sut.addShutdownCondition(&condition);
     EXPECT_TRUE(sut.wait());
-    condition.returnValue = true;
+    EXPECT_EQ(condition.timesCalled, 1U);
+    condition.returnTrueFor = 1U;
     EXPECT_FALSE(sut.wait());
+    EXPECT_EQ(condition.timesCalled, 2U);
 }
 
 TEST_F(UtilityLoopControl, OneOfManyConditionsIsEnoughToShutdown)
@@ -102,8 +122,51 @@ TEST_F(UtilityLoopControl, OneOfManyConditionsIsEnoughToShutdown)
     sut.addShutdownCondition(&condition0);
     sut.addShutdownCondition(&condition1);
     EXPECT_TRUE(sut.wait());
-    condition1.returnValue = true;
+    condition1.returnTrueFor = 1U;
     EXPECT_FALSE(sut.wait());
+}
+
+TEST_F(UtilityLoopControl, AddingSkipCondition)
+{
+    LoopControl   sut{};
+    MockCondition condition{};
+
+    EXPECT_TRUE(sut.updateInterval(Ms{40}));
+    sut.addSkipCondition(&condition);
+
+    auto startTime = NOW_MS;
+    EXPECT_TRUE(sut.wait());
+    auto const duration0 = NOW_MS - startTime;
+    EXPECT_EQ(condition.timesCalled, 1U);
+    EXPECT_GE(duration0, 35U);
+    EXPECT_LE(duration0, 45U);
+
+    condition.returnTrueFor = 2U;
+
+    startTime = NOW_MS;
+    EXPECT_TRUE(sut.wait());
+    auto const duration1 = NOW_MS - startTime;
+    EXPECT_EQ(condition.timesCalled, 4U);
+    EXPECT_GE(duration1, 110U);
+    EXPECT_LE(duration1, 150U);
+}
+
+TEST_F(UtilityLoopControl, OneOfManyConditionsIsEnoughToSkip)
+{
+    LoopControl   sut{};
+    MockCondition condition0{};
+    MockCondition condition1{};
+    sut.addSkipCondition(&condition0);
+    sut.addSkipCondition(&condition1);
+    condition0.returnTrueFor = 1U;
+
+    EXPECT_TRUE(sut.updateInterval(Ms{40}));
+
+    auto const startTime = NOW_MS;
+    EXPECT_TRUE(sut.wait());
+    auto const duration = NOW_MS - startTime;
+    EXPECT_GE(duration, 70U);
+    EXPECT_LE(duration, 90U);
 }
 
 } // namespace Terrahertz::UnitTests

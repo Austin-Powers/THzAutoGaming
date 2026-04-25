@@ -10,15 +10,15 @@
 #include <thread>
 #include <vector>
 
-#define NOW_MS                                                                                                         \
-    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()
+using std::chrono::duration_cast;
+using ms = std::chrono::milliseconds;
+
+#define NOW_MS duration_cast<ms>(std::chrono::system_clock::now().time_since_epoch()).count()
 
 namespace Terrahertz::UnitTests {
 
 struct InputEmulator : public testing::Test
 {
-    using ms = std::chrono::milliseconds;
-
     using TimeVector = std::vector<std::chrono::system_clock::time_point>;
 
     struct MockStrategy : public Input::IDeviationStrategy

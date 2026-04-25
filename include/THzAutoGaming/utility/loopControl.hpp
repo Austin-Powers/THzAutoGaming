@@ -38,7 +38,12 @@ public:
     /// @remark Any condition being met will trigger shutdown.
     void addShutdownCondition(ICondition *const condition) noexcept;
 
-    // TODO Add skip condition to skip rounds, in order to wait for input emulation to finish etc.
+    /// @brief Adds a condition that is check at the end of wait(), that if met,
+    /// will cause wait to restart instead of return.
+    ///
+    /// @param condition The condition to check each time wait() is about to return.
+    /// @remark Any condition being met will trigger skip.
+    void addSkipCondition(ICondition *const condition) noexcept;
 
 private:
     /// @brief Flag signalling if the loop is still running.
@@ -50,8 +55,11 @@ private:
     /// @brief The next time the loop should run.
     TimePoint _nextPoint{Clock::now()};
 
-    /// @brief List of conditions that trigger shutdown of the
+    /// @brief List of conditions that trigger shutdown.
     std::vector<ICondition *> _shutdownConditions{};
+
+    /// @brief List of conditions that trigger skip.
+    std::vector<ICondition *> _skipConditions{};
 };
 
 } // namespace Terrahertz

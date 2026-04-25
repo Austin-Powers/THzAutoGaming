@@ -6,29 +6,46 @@ namespace Terrahertz {
 
 bool LoopControl::wait() noexcept
 {
-    if (!_shutdownConditions.empty())
-    {
-        for (auto &condition : _shutdownConditions)
+    auto const checkSkipConditions = [this]() -> bool {
+        if (!_skipConditions.empty())
         {
-            if (condition->check())
+            for (auto &condition : _skipConditions)
             {
-                _running = false;
-                break;
+                if (condition->check())
+                {
+                    return true;
+                }
             }
         }
-    }
-    if (_running)
+        return false;
+    };
+
+    do
     {
-        auto const currentTime = Clock::now();
-        while ((_nextPoint - currentTime).count() <= 0U)
+        if (!_shutdownConditions.empty())
         {
-            _nextPoint += _interval;
+            for (auto &condition : _shutdownConditions)
+            {
+                if (condition->check())
+                {
+                    _running = false;
+                    break;
+                }
+            }
         }
-        std::mutex                   mutex{};
-        std::unique_lock<std::mutex> lock{mutex};
-        std::condition_variable      cv{};
-        cv.wait_until(lock, _nextPoint);
-    }
+        if (_running)
+        {
+            auto const currentTime = Clock::now();
+            while ((_nextPoint - currentTime).count() <= 0U)
+            {
+                _nextPoint += _interval;
+            }
+            std::mutex                   mutex{};
+            std::unique_lock<std::mutex> lock{mutex};
+            std::condition_variable      cv{};
+            cv.wait_until(lock, _nextPoint);
+        }
+    } while (checkSkipConditions());
     return _running;
 }
 
@@ -51,6 +68,14 @@ void LoopControl::addShutdownCondition(ICondition *const condition) noexcept
     if (condition != nullptr)
     {
         _shutdownConditions.emplace_back(condition);
+    }
+}
+
+void LoopControl::addSkipCondition(ICondition *const condition) noexcept
+{
+    if (condition != nullptr)
+    {
+        _skipConditions.emplace_back(condition);
     }
 }
 
