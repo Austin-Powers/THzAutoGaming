@@ -52,6 +52,8 @@ Below is more detailed information about the contents of each subdirectory.
 ### Utility
 - __`class CapsLockActive`__ _(commonConditions.hpp)_ Condition checking if Caps-Lock is active.
 - __`class NumLockActive`__ _(commonConditions.hpp)_ Condition checking if Num-Lock is active.
+- __`class EmulatorBusy`__ _(commonConditions.hpp)_ Condition checking if the emulator is busy.
+- __`class CountdownOver`__ _(commonConditions.hpp)_ Flips the current return value of check() after a certain amount of calls to check() have passed.
   
 - __`class ICondition`__ _(iCondition.hpp)_ Interface for classes acting as conditions for events.
   
