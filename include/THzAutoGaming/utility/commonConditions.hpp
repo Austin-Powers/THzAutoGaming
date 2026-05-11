@@ -88,7 +88,7 @@ public:
 
 private:
     /// @brief The return value
-    bool _initalialCheckReturnValue{};
+    bool _initialCheckReturnValue{};
 
     /// @brief The current state of the countdown.
     std::uint16_t _countdown{};

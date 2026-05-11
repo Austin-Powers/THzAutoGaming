@@ -7,6 +7,7 @@ add_executable(${PROJECTNAME}
 	input/parameters.cpp
 	optimisation/evolution/algorithm.cpp
 	simulations/tileMatchingPuzzle.cpp
+	utility/commonConditions.cpp
 	utility/imageLoader.cpp
 	utility/loopControl.cpp
 )

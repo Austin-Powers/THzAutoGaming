@@ -17,26 +17,24 @@ bool EmulatorBusy::check() noexcept
     return (_emulator.actionCountMouse() != 0U) || (_emulator.actionCountKeyboard() != 0U);
 }
 
-// TODO test CountdownOver
-
 CountdownOver::CountdownOver(bool const initialCheckReturnValue, std::uint16_t const countdown) noexcept
-    : _initalialCheckReturnValue{initialCheckReturnValue}, _countdown{countdown}
+    : _initialCheckReturnValue{initialCheckReturnValue}, _countdown{countdown}
 {}
 
 void CountdownOver::reset(bool const initialCheckReturnValue, std::uint16_t const countdown) noexcept
 {
-    _initalialCheckReturnValue = initialCheckReturnValue;
-    _countdown                 = countdown;
+    _initialCheckReturnValue = initialCheckReturnValue;
+    _countdown               = countdown;
 }
 
 bool CountdownOver::check() noexcept
 {
     if (_countdown == 0U)
     {
-        return !_initalialCheckReturnValue;
+        return !_initialCheckReturnValue;
     }
     --_countdown;
-    return _initalialCheckReturnValue;
+    return _initialCheckReturnValue;
 }
 
 } // namespace Terrahertz
