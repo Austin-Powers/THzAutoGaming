@@ -37,4 +37,23 @@ bool CountdownOver::check() noexcept
     return _initialCheckReturnValue;
 }
 
+TimePointReached::TimePointReached(bool const initialCheckReturnValue, TimePoint const timePoint) noexcept
+    : _initialCheckReturnValue{initialCheckReturnValue}, _timePoint{timePoint}
+{}
+
+void TimePointReached::reset(bool const initialCheckReturnValue, TimePoint const timePoint) noexcept
+{
+    _initialCheckReturnValue = initialCheckReturnValue;
+    _timePoint               = timePoint;
+}
+
+bool TimePointReached::check() noexcept
+{
+    if (_timePoint < Clock::now())
+    {
+        return !_initialCheckReturnValue;
+    }
+    return _initialCheckReturnValue;
+}
+
 } // namespace Terrahertz
