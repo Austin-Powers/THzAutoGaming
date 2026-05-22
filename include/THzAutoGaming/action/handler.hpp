@@ -11,6 +11,7 @@ namespace Terrahertz::Action {
 class Handler
 {
 public:
+    // TODO add scaling factor
     /// @brief Initializes a new ActionHandler.
     ///
     /// @param input The node used for inputting images the handler works with.
@@ -27,6 +28,8 @@ public:
     bool next() noexcept;
 
     // TODO Add ScannerAction that will be handed an image (BGRA or MINIHSV) and scans it
+
+private:
 };
 
 } // namespace Terrahertz::Action
