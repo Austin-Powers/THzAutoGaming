@@ -10,15 +10,15 @@
 #include <thread>
 #include <vector>
 
-#define NOW_MS                                                                                                         \
-    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()
+using std::chrono::duration_cast;
+using ms = std::chrono::milliseconds;
+
+#define NOW_MS duration_cast<ms>(std::chrono::system_clock::now().time_since_epoch()).count()
 
 namespace Terrahertz::UnitTests {
 
 struct InputEmulator : public testing::Test
 {
-    using ms = std::chrono::milliseconds;
-
     using TimeVector = std::vector<std::chrono::system_clock::time_point>;
 
     struct MockStrategy : public Input::IDeviationStrategy
@@ -369,6 +369,14 @@ struct InputEmulator : public testing::Test
         std::this_thread::sleep_for(ms{1U});
         EXPECT_EQ(sut.actionCountMouse(), 0U);
         EXPECT_EQ(sut.actionCountKeyboard(), 0U);
+    }
+
+    void setupExpectedKeyPress(Input::Key const key) noexcept
+    {
+        strategy.expectCalculateKeyDownTime(ms{2});
+        systemInterface.expectDown(key, true);
+        strategy.expectCalculateKeyUpTime(ms{2});
+        systemInterface.expectUp(key, true);
     }
 
     std::mutex mutex{};
@@ -1132,6 +1140,38 @@ TEST_F(InputEmulator, ResetReleasesAllKeys)
     sut.wait(false, ms{10});
     sut.reset();
     waitForSignal(ms{16000});
+}
+
+TEST_F(InputEmulator, EnterNumber)
+{
+    setupExpectedKeyPress(Input::Key::Number0);
+
+    setupExpectedKeyPress(Input::Key::Subtract);
+    setupExpectedKeyPress(Input::Key::Number1);
+
+    setupExpectedKeyPress(Input::Key::Number0);
+    setupExpectedKeyPress(Input::Key::Number0);
+
+    setupExpectedKeyPress(Input::Key::Subtract);
+    setupExpectedKeyPress(Input::Key::Number0);
+    setupExpectedKeyPress(Input::Key::Number0);
+    setupExpectedKeyPress(Input::Key::Number0);
+    setupExpectedKeyPress(Input::Key::Number3);
+
+    setupExpectedKeyPress(Input::Key::Number8);
+    setupExpectedKeyPress(Input::Key::Number9);
+
+    setupExpectedKeyPress(Input::Key::Number9);
+    setupExpectedKeyPress(Input::Key::Number8);
+
+    sut.enterNumber(0);
+    sut.enterNumber(-1);
+    sut.enterNumber(0, 2U);
+    sut.enterNumber(-3, 4U);
+    sut.enterNumber(89);
+    sut.enterNumber(98, 2U);
+
+    waitForSignal(ms{4000});
 }
 
 } // namespace Terrahertz::UnitTests

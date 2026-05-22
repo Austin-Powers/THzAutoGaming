@@ -4,9 +4,9 @@ Fun projects all around automated playing of computer games.
 Below is more detailed information about the contents of each subdirectory.
 
 ### Action
-- __`class ActionHandler`__ _(handler.hpp)_ Uses processed screenshots to determine what actions to perform.
+- __`class Handler`__ _(handler.hpp)_ Uses processed screenshots to determine what actions to perform.
   
-- __`class IAction`__ _(iAction.hpp)_ Interface for actions.
+- __`class ITriggerAction`__ _(iTriggerAction.hpp)_ Interface for trigger based actions.
   
 
 ### Common
@@ -21,6 +21,8 @@ Below is more detailed information about the contents of each subdirectory.
 - __`enum Key`__ _(common.hpp)_ Enumeration of keys on the keyboard.
 - __`concept SystemInterface`__ _(common.hpp)_ Concept for the system interface used to 
   
+- __`struct MouseAction`__ _(emulator.hpp)_ Data structure for a single mouse related action performed by the emulator.
+- __`struct KeyboardAction`__ _(emulator.hpp)_ Data structure for a single keyboard related action performed by the emulator.
 - __`class BaseEmulator`__ _(emulator.hpp)_ Emulates user input via keyboard and mouse.
 - __`definition Emulator`__ _(emulator.hpp)_ The emulator using the current system interface.
 - __`definition Emulator`__ _(emulator.hpp)_ The emulator using the current system interface.
@@ -50,6 +52,9 @@ Below is more detailed information about the contents of each subdirectory.
 ### Utility
 - __`class CapsLockActive`__ _(commonConditions.hpp)_ Condition checking if Caps-Lock is active.
 - __`class NumLockActive`__ _(commonConditions.hpp)_ Condition checking if Num-Lock is active.
+- __`class EmulatorBusy`__ _(commonConditions.hpp)_ Condition checking if the emulator is busy.
+- __`class CountdownOver`__ _(commonConditions.hpp)_ Flips the current return value of check() after a certain amount of calls to check() have passed.
+- __`class TimePointReached`__ _(commonConditions.hpp)_ Flips the current return value of check() after a certain timepoint is reached.
   
 - __`class ICondition`__ _(iCondition.hpp)_ Interface for classes acting as conditions for events.
   

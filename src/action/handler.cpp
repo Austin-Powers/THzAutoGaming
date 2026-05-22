@@ -2,7 +2,11 @@
 
 namespace Terrahertz::Action {
 
-Handler::Handler(ImageProcessing::INode<BGRAPixel> *const imageInput, Input::Emulator *const emulator) noexcept {}
+Handler::Handler(ImageProcessing::INode<BGRAPixel> *const imageInput) noexcept {}
+
+void Handler::addTriggerAction(ITriggerAction *const action) noexcept {}
+
+bool Handler::next() noexcept { return false; }
 
 bool Handler::next() noexcept {return false;}
 

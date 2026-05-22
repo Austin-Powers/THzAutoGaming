@@ -21,12 +21,12 @@ FetchContent_Declare(
 FetchContent_Declare(
 	THzCommon
 	GIT_REPOSITORY https://github.com/Austin-Powers/THzCommon
-	GIT_TAG        319ba1236d6cf716ecda4b6bf9e722d57b7c1405 # latest 28.11.25
+    GIT_TAG        81009f04cc9bc9eb8b2164edb73e863d6f0b85b8 # latest 2026-04-19
 )
 FetchContent_Declare(
 	THzImage
 	GIT_REPOSITORY https://github.com/Austin-Powers/THzImage
-	GIT_TAG        3ccde03906dd16ad1f1e97a1fc665cd4cf4e3091 # latest 04.02.26
+    GIT_TAG        09f90f4974944fcabf1f4c9b84de2186727ee6cb # latest 2026-04-19
 )
 FetchContent_Declare(
 	gsl
@@ -46,6 +46,7 @@ if(NOT DEFINED THzImage_SOURCE_DIR)
 endif()
 
 add_library(${PROJECT_NAME} STATIC
+	src/action/handler.cpp
 	src/input/linuxInterface.cpp
 	src/input/normalDeviationStrategy.cpp
 	src/input/parameters.cpp
@@ -55,6 +56,8 @@ add_library(${PROJECT_NAME} STATIC
 	src/utility/imageLoader.cpp
 	src/utility/loopControl.cpp
 
+	include/THzAutoGaming/action/handler.hpp
+	include/THzAutoGaming/action/iTriggerAction.hpp
 	include/THzAutoGaming/input/common.hpp
 	include/THzAutoGaming/input/emulator.hpp
 	include/THzAutoGaming/input/iDeviationStrategy.hpp
@@ -68,7 +71,7 @@ add_library(${PROJECT_NAME} STATIC
 	include/THzAutoGaming/utility/iCondition.hpp
 	include/THzAutoGaming/utility/imageLoader.hpp
 	include/THzAutoGaming/utility/loopControl.hpp
- "src/action/handler.cpp")
+)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
 	${PROJECT_SOURCE_DIR}/include
