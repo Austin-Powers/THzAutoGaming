@@ -30,6 +30,8 @@ public:
     // TODO Add ScannerAction that will be handed an image (BGRA or MINIHSV) and scans it
 
 private:
+    /// @brief The node used for inputtingthe images the handler works with.
+    ImageProcessing::INode<BGRAPixel> *_bgraImageInput;
 };
 
 } // namespace Terrahertz::Action
